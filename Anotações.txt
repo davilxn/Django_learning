@@ -25,11 +25,15 @@
         # Dentro da pasta do projeto crie o famoso arquivo .gitignore e digite "venv", dentro.
             # .gitignore informa quais pastas e arquivos não devem ser adicionados ao repositório do git.
             # Posteriormente, pegaremos um .gitignore que já vem praticamente pronto, pra quase todo projeto.
+        # git status
+        # (Se necessário) git add .
+        # git commit -m "Mensagem"
+        # (Se necessário) git push
         # O comando git push é usado para enviar o conteúdo do repositório local para um repositório remoto.
         # O comando git status exibe as condições do diretório de trabalho e da área de staging. Ele permite 
         que você veja quais alterações foram despreparadas, quais não foram e quais arquivos não estão sendo monitorados pelo Git.
 
-
+        # Primeiro repositório do curso: https://github.com/luizomf/curso-django-projeto1
 
 
     # Navegando no cmd
