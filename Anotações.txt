@@ -1,0 +1,39 @@
+# Ajustando ambiente de desenvolvimento
+    # Crie a pasta do projeto.
+    # Crie um ambiente virtual: python -m venv venv
+    # Ativar ambiente virtual: .\venv\Scripts\activate   // Tá acessando o arquivo activate, dentro da pasta Scripts, dentro da pasta venv, dentro da pasta Django.
+    # Ctrl + Shift + P   ->   Selecionar interpretador   ->   A versão recomendada
+    # Quando for instalar bibliotecas e módulos, lembre-se de instalá-los dentro do ambiente virtual.
+    # Instalar o django   ->   pip install django   ->   django-admin --version
+
+# Usando o git e o github
+    # Crie um repositório no gitbub para o o projeto
+    # No venv:
+        # git config --global user.name "Davi Santos Alexandrino"
+        # git config --global user.email "davi.santos.alexandrino@gmail.com"
+        # git config --global init.defaultBranch main
+        # git init 
+    # Com o repositório no github criado e o repositório no git criado, basta conectar os dois:
+        # Geraremos uma chave SSH, porque se aproxima mais da realidade das empresas;
+        # ssh-keygen   ->   Enter
+        # Se quiser pôr senha, fique à vontade.
+        # Your public key has been saved in ...
+        # Abra o arquivo do path acima e copie a chave SSH.
+        # Vá no seu perfil do github   ->  (em nova aba) Settings   ->   SSH e GPG keys   ->   new SSH key   ->   Cole e salve.
+        # Volte na janela do repositório do github e copie o link SSH.
+        # No venv: git remote add origin olinkcopiado. Isso faz a conexão entre o repositório do git e o do github.
+        # Dentro da pasta do projeto crie o famoso arquivo .gitignore e digite "venv", dentro.
+            # .gitignore informa quais pastas e arquivos não devem ser adicionados ao repositório do git.
+            # Posteriormente, pegaremos um .gitignore que já vem praticamente pronto, pra quase todo projeto.
+        # O comando git push é usado para enviar o conteúdo do repositório local para um repositório remoto.
+        # O comando git status exibe as condições do diretório de trabalho e da área de staging. Ele permite 
+        que você veja quais alterações foram despreparadas, quais não foram e quais arquivos não estão sendo monitorados pelo Git.
+
+
+
+
+    # Navegando no cmd
+        # cd.. -> Volta para a raiz dos arquivos.
+        # cd nomedapastaquedesejacessar
+        # dir -> Ver o que tem dentro da pasta que está
+        # cd Users\davia\Programação\Python\Django
