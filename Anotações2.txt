@@ -1,0 +1,118 @@
+Agora, iremos entender mais profundamente os arquivos e estruturas do django.
+
+# Urls.py
+    # Sempre que acessamos um site e suas diversas páginas e ramificações, acessamos através de URLS.
+    # Toda URL possui seu domínio, suas terminações e, ao fim, uma /. 
+        # Ex: www.Otaviomiranda.com.br, mas quando acessamos o domínio, vê-se: www.Otaviomiranda.com.br/.
+        # Isso significa que estamos na raíz do site, na página principal ou na porta de entrada do site.
+    # O que vem após a /, diz respeito a outras páginas do site que também podem ser acessadas pelo usuário.
+        # Ex: www.Otaviomiranda.com.br/sobre    ou   www.Otaviomiranda.com.br/cursos
+    
+# Criando Rotas/Paths no django
+    # No arquivo Urls.py, utilizamos a função path para criar rotas/caminhos/paths e atribuí-los à páginas (do site). A função path recebe, 
+      no mínimo, dois argumentos: uma rota (do tipo string, de modelo: 'rota/'. A / no fim é obrigatória) e uma view. 
+        # As views são funções presentes dentro de cada arquivo 'views' de cada aplicação (app). 
+        # As views recebem como argumentos *args e *kwargs, que serão a request realizada.
+        # De maneira simples: Quando digitamos uma url no navegador, estamos fazendo com que o navegador realize uma request utilizando o 
+          protocolo http para aquela url, para aquele endereço, isto é, para aquele específico 'path' (o path que contém o endereço que o 
+          usuário quis acessar), e então o servidor vai receber essa request e vai passar ela como argumento para a view, através da função 
+          path(). Isso é chamado de HTTP REQUEST.
+          Após esse processo, a view deve retornar uma HTTP RESPONSE, isto é, um objeto HttpResponse. O servidor irá retornar essa HttpResponse
+          para o cliente, que fez a HttpRequest (que requisitou algo do servidor). 
+        # Como, até este ponto, ainda não vimos 'apps', criaremos uma view temporária dentro do arquivo Urls.py. 
+          Ex. path('sobre/', viewinventada). Nesse momento, agora o site possui uma url http://127.0.0.1:8000/sobre, que irá carregar
+          a view 'viewinventada'. Como dito, a path passará para a viewinventada um argumento, que é uma request, mas a viewinventada não 
+          tem parâmetros, então gera erro. Criado o parâmetro 'request' para viewinventada, agora ela receberá a request, mas ainda não está
+          devolvendo uma HTTPRESPONSE. Para fins puramente didáticos fez-se from django.http import HttpResponse e:
+          
+          def viewinventada(request):
+            return HttpResponse("Hoje é um bom dia para aprender django.")
+          
+          Posteriormente, veremos que estas HttpResponse's serão arquvos HTML que serão carregados e mostrarão a página requisitada pelo cliente.
+          O cliente pediu (requisitou, fez a request) e o nosso site retornou a resposta.
+
+# Visão geral sobre o protocolo HTTP e o http request e o http response
+  # O protocolo HTTP é um protocolo utilizado geralmente para navegar na internet ou trafegar coisas na internet. Ele funciona nos modos de 
+    REQUEST e RESPONSE: o CLIENTE faz uma REQUEST para o site e o servidor que representa o site deve recebê-la e retornar uma RESPONSE com o 
+    que foi solicitado pelo cliente.
+
+    O HTTP é um protocolo de comunicação, ou seja, uma convenção de regras e padrões que controla e possibilita uma conexão e troca de dados 
+    entre dois sistemas computacionais.
+    É baseado no modelo de cliente-servidor, ou seja, de um lado, um navegador requisita um determinado dado, e do outro, um computador 
+    (ou servidor) retorna a informação desejada (ou não, caso não ela seja encontrada, ocorra um erro ou não exista).
+
+    Clientes e servidores se comunicam pela internet trocando mensagens individuais. As mensagens enviadas pelo cliente, geralmente navegadores 
+    web, são chamadas de requisições (requests). As réplicas dos servidores são chamadas de respostas (responses), podendo conter algum 
+    conteúdo (como arquivos HTML) além de informações sobre o status da requisição.
+
+  # Entendimento sobre MÉTODOS DE REQUISIÇÃO HTTP:
+    O protocolo HTTP define oito métodos de requisição (GET, POST, PUT, DELETE, HEAD, TRACE, OPTIONS e CONNECT) para indicar qual ação deve ser 
+    realizada no recurso especificado. Os métodos GET e POST, PUT e DELETE são os mais utilizados em aplicações web. Um servidor HTTP deve 
+    implementar, pelo menos, os métodos GET e HEAD para ser funcional.
+    No django, os mais usados são o GET e o POST. Ao usar django rest, passaremos a ver o método TRACE com frequência, também.
+    Mais info sobre os méotodos: https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Methods
+
+    GET - Solicitação de dados
+    POST - Solicitação para editar
+
+    # Breve entendimento sobre Código de Status de Resposta HTTP (RESPONSE)
+      # Respostas de informação (100 - 199)
+      # Respostas de sucesso (200 - 299)
+      # Redirecionamentos (300 - 399)
+      # Erros do cliente (400 - 499) - Error 404 (page not found), lembra?
+      # Erros do servidor (500 - 599)
+
+  # Numa das páginas que você criou, clique com o botão direito e clique em "inspecionar". Depois em "Network" e Ctrl +  R.
+    # Você vai ver informações importantes sobre as responses retornadas pelo servidor (status, tipo, tamanho, tempo)
+    # Também verá todos os arquivos que foram trazidos quando a página em questão foi carregada. Ao clicar em um desses, você verá informações
+      importantes:
+        # Aba GENERAL: 
+          - A URL para a qual a requisição foi feita;
+          - Status code;
+          - O endereço remoto;
+          - Política de referência
+        # Request headers: 
+          - Meta dados mandados para o servidor quando a request é realizada. Esses metadados são enviados pelo mecanismo que tipo
+            ver realizado a request, nesse caso, o navegador, e informa que tipo de dados o mecanismo (o navegador) pode aceitar como resposta do 
+            servidor (os tipos de arquivo e etc.)
+          - Ecoding;
+          - Idiomas aceitos;
+          - Host
+        # Response headers: 
+          - Tamanho do conteúdo;
+          - Tipo do conteúdo;
+          - Data;
+          - Servidor
+          - Segurança
+
+# Aplicações (app's) no django
+  # Em um projeto django, podemos ter várias aplicações, cada uma com sua tarefa e função específica, e estas aplicações, depois de criadas, 
+    podem ser utilizadas em outros projetos. Um projeto é formado pelo conjunto de suas aplicações e funcionamento em conjunto de todas elas.
+    Exemplo: Projeto -> E-commerce ; Apps -> Clientes, pagamentos, carrinhos, pedidos, entregas, produtos, promoções, etc.
+    
+    É muito importante que sua app tenha uma responsabilidade única e bem definida. Isso viabiliza o reaproveitamento e simplifica a manutenção
+    do seu código, pois estamos falando de áreas do projeto que devem interagir entre si.
+
+  # Criar as aplicações do projeto: manage.py startapp nomedaapp. Adicione os nomes das aplicações criadas à lista 'INSTALLED_APPS', 
+    no arquivo 'settings',no diretório do projeto.
+
+  # Nesse caso (início do aprendizado), haverá somente um app.
+  # Projeto: Criar um site de receitas: Cadastro de receitas com todas as informações (muitas informações, justamente pra contribuir com o aprendizado).
+    Os clientes poderão escrever suas receitas no site, mas elas não serão publicadas, e sim avaliadas por um administrador, para avaliá-las e 
+    só então decidir se publica a receita ou não.
+  # O app criado será chamado de 'receitas'.
+  # DENTRO DO VENV: python manage.py startapp recipes
+
+# Refazendo paths e views, com apps
+  # Tudo o que foi criado dentro do Urls.py de projeto1 (as views e paths) irão para dentro da app recipes. No entanto, ainda precisaremos 
+    dos paths que foram criados, dentro do arquivo Urls.py de projeto1.
+  # Crie um arquivo Urls.py dentro de recipes e cole todos os paths referentes à app 'recipes' (nesse caso, a unica app, então são todas os 
+    paths). Após isso, dentro de urls.py de projeto1, faça: from django.urls import include, path; depois, troque todos os paths por:
+
+                                                    path('', include('recipes.urls'))
+
+  # Como iremos mover as views para outro arquivo (views.py de recipes), devemos importá-las para que possamos continuar utilizando-as no 
+    arquivo Urls.py para configuar as paths.
+  # Isso resulta em: a view.py e urls.py das aplicações serão arquivos horríveis, no entanto, a view.py e urls.py do projeto será limpa, pois lá
+  é o coração.
+
