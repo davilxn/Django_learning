@@ -1,3 +1,6 @@
+Seção 2 - Ajustando o ambiente de desenvolvimento
+Seção 3 - Ajustando o ambiente django + git e github com chaves SSH
+
 # Ajustando ambiente de desenvolvimento
     # Crie a pasta do projeto.
     # Crie um ambiente virtual: python -m venv venv

@@ -1,0 +1,47 @@
+Seção 7: Django templates, herança, blocos, if, for e mais
+
+# Na página home do site aparecem os cards de receitas dos usuários. Cada card possui um link "veja mais", que levará a outra página do site,
+  contendo mais informações sobre aquela receita em específico.
+
+# Deve-se, intuitivamente, criar uma página html para cada card de receita. No entanto, haverá somente uma view para estas chamadas, que será 
+  a view 'recipes'. As diferentes páginas para as diferentes receitas serão acessadas por paths como: domínio/recipes/1, domínio/recipes/2, 
+  domínio/recipes/3. Perceba que agora, estamos recebendo um argumento após o /recipes/, que é um inteiro.
+  Esse argumento é passado pelo navegador para o servidor, a função path recebe esse argumento e passa para a view recipes. No entanto, a view
+  não possui esse parâmetro, então devemos implementá-lo.
+  A partir do momento que eu ponho essa modificação dentro da path, ela passa a demandar esse argumento. Se ele não for fornecido, ocorre o
+  erro de página não encontrada, pois teoricamente, a url está errada/incompleta.
+  
+  No django, de modo geral, para que a path receba este argumento e o passe para uma view, deve-se fazê-la da seguinte forma:
+
+                                        path("urldigitadalá/<id>/", view)
+
+                                        no caso desse projeto:
+
+                                        path("recipes/<id>/", views.recipes)
+
+  A path receberá então o argumento id e o passará para a view, que deve possuir um parâmetro para recebê-lo:
+
+            def viewemquestao(request, id):
+
+            no caso desse projeto:
+
+            def recipes(request, id):
+
+  Esse id recebido pela função path pode ser absolutamente qualquer coisa, o que é um problema. No django, podemos definir o tipo de dado que
+  pode ser atribuído a ele pelo usuário:
+    - str: Aceita qualquer string não-vazia, exceto pelo separador de path '/'.
+    - int: Aceita 0 ou qualquer inteiro positivo.
+    - slug: Aceita qualquer string slug que consista em letras ou números ASCII, mais os caracteres hífen (-) e underline (_). Ex: 
+      'building-your-1st-django-website'.
+    - uuid: Aceita um UUID formatado. Para evitar que vários URLs sejam mapeados para a mesma página, os hífens devem ser incluídos e as letras 
+      devem ser minúsculas. Por exemplo, 075194d3-6885-417e-a8a8-6c931e272f00.
+    - path: Aceita qualquer string não-vazia, incluindo o separador de path '/'. Isso permite que você corresponda a um caminho de URL completo 
+      em vez de um segmento de um caminho de URL como com str.
+
+  Para definir o tipo do dado do id, faz-se o path, então, da seguinte forma:
+
+                                    path("urldigitadalá/<type:id>/", view)
+                                    
+                                        no caso desse projeto:
+
+                                    path("recipes/<int:id>/", views.recipes)
