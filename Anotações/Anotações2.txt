@@ -137,6 +137,10 @@ Agora, iremos entender mais profundamente os arquivos e estruturas do django.
       'templates', dentro de cada aplicação. Deve se chamar 'templates', pois o Django é inteligente o suficiente pra buscar os arquivos cujos
       caminhos foram informados na render, dentro desta pasta.
 
+    # A configuração acima pode ser ajustada modificando o valor da chave 'DIRS' da variável TEMPLATES em settings.py. Futuramente, criaremos
+      um diretório global de templates (base_templates), e o nome dele deverá estar dentro dessa chave, para indicar para o django onde ele
+      deve procurar templates sem que precisemos informar paths completos.
+
     # Pra evitar que uma busca do django por arquivos html de mesmo nome termine em erros, convenciona-se criar, dentro da pasta de templates 
       da app, uma outra pasta com o nome da app e pôr todos os arquivos html dentro dessa pasta. A consequência disso vem no momento de passar
       o caminho do arquivo html para a função render: ao invés de ser "render(request, 'home.html')", será "render(request, 'app/home.html')", E

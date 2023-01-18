@@ -45,3 +45,129 @@ Seção 7: Django templates, herança, blocos, if, for e mais
                                         no caso desse projeto:
 
                                     path("recipes/<int:id>/", views.recipes)
+
+  # A view recipes, no entanto, não retorna nenhuma página html pra nenhum argumento inteiro, somente uma HttpResponse de texto simples.
+    Devemos então criar templates para as chamadas da view recipes.
+
+# Herança em Templates e Template Blocks
+  # O que aprenderemos adiante não é sequer necessário neste projeto, pelo seu escopo, mas utilizaremos para concretizar o aprendizado, pois
+    é uma ferramenta muito útil do django, que será utilizada em muitos outros projetos.
+  # Perceba que a o template home.html e recipes-view tem exatamente a mesma estrutura, exceto pelo conteúdo da div que está dentro da tag 
+    <main> (criarei uma cópia desses dois templates para que possa ser feita comparação no futuro).
+  # Podemos utilizar a HERANÇA DE TEMPLATES para dividir melhor o código, assim como fizemos através da tag 'include': Crie um arquivo chamado
+    base.html dentro de base_templates e cole a estrutura html comum à todas as páginas (tudo o que está em home.html ou recipe-view.html, 
+    com exceção da div que está entre a tag <main>, nesse caso (exclui a div)).
+    Em base.html, tendo excluído o que estava dentro da tag <main> (que, reforçando, é a única coisa que muda de template pra template, e esse 
+    é o motivo de estarmos fazendo isso), será a tag 'block' do django: 
+
+                                    {% block content %}{% endblock content %} 
+
+    "Content" é só uma nomenclatura arbitrária para o bloco django que foi criado, poderia ser qualquer coisa. 
+    Realizando o comando acima em base.html, estamos criando/demarcando uma área para que qualquer outro template que for extender a página 
+    base.html, possa jogar conteúdo dentro. 'Extender a página' significa criar uma página colocando todo o conteúdo de outro template dentro 
+    do template que está sendo extendido, nesse caso, o base.html.
+
+    # Para fazer a extensão, utilizaremos a tag 'extends' do django. Nesse momento, como os outros templates só atuarão como uma extensão de 
+      base.html, então dentro deles só deve haver o que for o conteúdo a ser utilizado dentro da tag {% block content %}{% endblock content %} 
+      (neste caso, aquela div que foi excluída de base.html, e o conteúdo dessa div).
+    # No topo dos templates que atuarão como extensão digite: {% extends 'pathdotemplateaserextendido' %}. No caso desse projeto:
+      {%  extends 'global/base.html' %}.
+        # OBS. Estamos extendendo um template que está dentro de um diretório global de templates a ser analisado pelo django. Certifique-se de que
+          há o nome desse diretório ('base_templates') dentro da chave 'DIRS', na variável TEMPLATES, dentro de settings.py.
+    # Após isso, nas páginas que atuarão como extensão, ponha o conteúdo que será utilizado dentro do 'block' criado na página a ser extendida
+      (nesse caso, base.html), dentro da tag {% block content %}{% endblock content %} (igual á tag criada dentro do arquivo a ser extendido, nes
+      se caso, o base.html)
+    # Façamos o mesmo para 'recipes-view.html'.
+
+# Ajustes de estilo:
+  # Utilizamos Herança de Templates para modificar o título das páginas.
+  # Quando clicamos em 'ver mais' em um dos cards de receita em home.html, ele leva para outra página, com o mesmo card de receita, mas ainda
+  mostrando o 'ver mais'. Há uma maneira de removê-lo:
+    # Na view receita.py, crie no dicionário que foi passado pra o parâmetro 'context' uma chave 'is_detail_page' que recebe o valor True.
+    Após isso, faremos um 'if' no formato django dentro de recipe.py na parte responsável por mostrar o botão 'ver mais':
+
+              {% if is_detail_page is not True %}
+                  <footer class="recipe-footer">
+                    <a class="recipe-read-more button button-dark button-full-width" href="/recipes/3/">
+                      <i class="fas fa-eye"></i>
+                      <span>ver mais...</span>
+                    </a>
+                  </footer>
+              {% endif %}
+    # Vai criar o 'ver mais' se cair nessa condição. Se não, ele não cria o botão.
+    # Se tiver dúvida, pense um pouco sobre como a tag include funciona e como esse esquema atua nos templates. FAZ TOTAL SENTIDO.
+      # Se for o template recipe-view.html que estiver incluindo o partial receita.html, então quem está renderizando o template é a view 
+        recipes, que passa a chave 'is_detail_page' com o valor True. Se for o template home.html que estiver incluindo o partial receita.html
+        então que está renderizando a o template é a view home, que sequer possui 'is_detail_page' como chave do dicionário context, e o django
+        interpretará isso como um False. False == is not True, então cairá na condição e o botão será criado.
+  # Além disso, queremos criar uma parte de 'modo de preparo', isto é, queremos que apareça o passo a passo do preparo da receita, caso cliquemos
+    no card desta receita. Ou seja: if is_detail_page == True  ->   Mostra o modo de preparo:
+
+                {% if is_detail_page is True %}
+                  <div class="preparation-steps">
+                    {{ steps }}                           # steps será uma chave do dicionário de context, dentro da view recipes.
+                  </div>
+              {% endif %}
+
+# Utilizando a tag URL do django:
+  # Se eu quiser navegar dentro do meu site, podemos usar a função path para fazer o django formar uma URL dinâmica para cada view e template.
+    Para isso, devemos criar um 'nome único' para cada URL: a própria função path possui o parâmetro 'name', com o qual podemos atribuir um no
+    me para a URL em questão, que usaremos para navegar através do site. Estamos, basicamente, nomeando uma url para tornar mais simples conec
+    tar internamente as páginas do site.
+    # Com o mecanismo acima, nomeamos a URL do path da view recipes e da view home. Agora eu posso chamar essas duas URL's quando eu quiser e 
+      onde eu quiser através dos nomes delas. Veremos adiante, que as usaremos para pôr links de uma página do site em outra página do site.
+    # No partials header.html dentro da primeira h1, existe um href de link (link relacionado à imagem) que possui como valor: "/", isto é, é 
+      um link que direciona para a home do site. No entanto, se, por alguma razão mudarmos este argumento dentro da path (ex: '/'  ->  'home/'), 
+      o servidor não encontrará mais a página, isso porque não passamos a URL pelo seu nome, e sim por um argumento que não era o ideal.
+      Para consertar esse problea, utilizamos a tag URL do django:
+
+                    <a class="main-logo" href="/">
+
+                          muda-se para:
+                    
+                    <a class="main-logo" href="{% url 'recipes-home' %}">
+
+      # Para acessar uma URL no django através da tag URL, faz-se:
+
+                  {% url 'nomedaurlpassadodentrodafunçãopathreferenteaessaurl' %}
+      
+      # TESTADO E FAZ TODO SENTIDO. FACILITA AS COISAS, MUITO BOM.
+      # Através disso, mudaremos os links que estão sendo acessados dentro do template receita.html. Começamos pelo link da linha 3, que está
+        acessando um card de receita. Nesse caso, não poderemos apenas fazer:
+
+                                          href = "{% url 'recipes-recipe' %}", 
+        
+        pois estamos acessando um card específico de uma receita específica, então devemos informar o id. Isso porque de uma maneira ou de outra
+        quando eu chamo uma URL, seja pelo endereço ou pelo nome, no final, o que está sendo informado é a estrutura completa da URL, e a 
+        estrutura completa dessa URL em específico necessita de um argumento extra, que é o ID.
+        A realidade, é que a tag URL no django tem mais parâmetros, que são passados de ocordo com a ordem de demanda da função path:
+
+                    {% url 'nomedaurlpassadodentrodafunçãopathreferenteaessaurl' v1 v2 %}
+
+                              no caso específico: 
+
+                    {% url 'recipes-recipe' alguminteiro %}  # No momento, esse id está sendo preenchido à mão, mas criaremos models.
+
+    # Utilizando o app_name
+      # Você pode criar, dentro do arquivo recipes/urls.py uma variável chamada 'app_name'. Exemplifiquemos seu funcionamento:
+
+          app_name = 'recipes'
+
+          Agora, as seguintes URL's não precisam mais ser nomeadas da seguinte forma:
+          path("", views.home, name='recipes-home'),
+          path("recipes/<int:id>/", views.recipes, name='recipes-recipe')
+
+          E sim:
+          path("", views.home, name='home'),
+          path("recipes/<int:id>/", views.recipes, name='recipe')
+
+          Na hora de chamar essas URL's nos templates através da tag url do django, não é mais necessário fazer:
+            <a href="{% url 'recipes-recipe' 1 %}">
+              <img src="https://via.placeholder.com/1280x720.png/269fe6" alt="Temporário">
+            </a>
+          
+          E sim:
+            <a href="{% url 'recipes:recipe' 1 %}">
+              <img src="https://via.placeholder.com/1280x720.png/269fe6" alt="Temporário">
+            </a>
+      # Não usei isso nesse projeto, mas sinta-se a vontade para usar no próximo. 

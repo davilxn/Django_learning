@@ -10,8 +10,8 @@ def view_inventada(request):   # Fins didáticos
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('Exemplo/', view_inventada),   # Fins didáticos.
-    path("Sobre/", views.sobre),
+    path("Sobre/", views.sobre, name='recipes-sobre'),      # Desnecessário, mas serviu de teste e exemplo
     path("Contato/", views.contato),
-    path("", views.home),
-    path("recipes/<int:id>", views.recipes)    # Página principal do site
+    path("", views.home, name='recipes-home'),
+    path("recipes/<int:id>/", views.recipes, name='recipes-recipe')    # Página principal do site
 ]

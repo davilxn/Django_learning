@@ -1,0 +1,178 @@
+Seção 8 - Django Models e ORM (Object Relacional Map)
+
+# Os Models 
+    # Um model, de maneira simples, representa uma tabela na base de dados. Teremos, por exemplo, uma tabela que armazene nossas receitas, e 
+      essa tabela possuirá várias colunas, logo, haverá um classe 'Recipe' com vários atributos.
+    # O próprio Django faz o trabalho de converter o nosso código, isto é, os nossos models em tabelas da base de dados, então não é necessário
+      se preocupar com a base de dados.
+    
+# Criando os primeiros Models
+    # Dentro da app 'recipes', no arquivo models.py, crie uma classe chamada Recipe.
+        # Essa classe/model, assim como todas as outras classes/models que forem criados por você devem herdar a classe 'models.Model'
+    # As colunas de uma tabela da base de dados serão os atributos da classe que a representa.
+    # Quase todos os atributos receberão campos de preenchimento, isto é, inputs para o usuário. Alguns não serão inputs, mas campos para 
+    geração de objetos prontos (como datas) ou valores booleanos, para verificações. Pesquise sobre todos que existem. 
+    Para isso: https://docs.djangoproject.com/pt-br/3.2/ref/models/fields/
+    # Os atributos do nosso model Recipe (colunas da tabela) serão:
+        # title 
+            - Receberá um campo de preenchimento de caracteres (models.CharField).
+        # description 
+            - Receberá um campo de preenchimento de caracteres (models.CharField).
+        # slug
+            - Receberá um campo de preenchimento especial para slugs (models.SlugField).
+        # preparation_time
+            - Receberá um campo de preenchimento para números, que poderá ser models.IntegerField.
+        # preparation_time_unit
+            - Poderia receber um campo de multipla escolha, mas por enquanto, será um campo de caracteres (models.CharField)  
+        # servings_time
+            - Receberá um campo de preenchimento para números, que poderá ser models.IntegerField.
+        # servings_time_unit
+            - Poderia receber um campo de multipla escolha, mas por enquanto, será um campo de caracteres (models.CharField)  
+        # preparation_steps
+            - Receberá um campo de texto livre (models.TextField)
+        # preparation_steps_is_html
+            - Receberá um campo de valor booleano, models.BooleanField, que armazenará valores booleanos, passados pelo usuário ou pelo 
+            desenvolvedor.
+            - Nesse caso, começará recebendo o valor padrão falso: models.BooleanField(default=False). BooleanField tem um parâmetro 'default'.
+        # created_at
+            - Esse atributo não é preenchido pelo usuário, mas é preenchido automaticamente pelo models.DateTimeField, que gerará uma data.
+            - Esta será a data de criação da receita.
+            - models.DateTimeField(auto_now_add=True) faz com que, no momento da criação da receita, seja gerada a data de criação.
+        # updated_at
+            - Esse atributo não é preenchido pelo usuário, mas é preenchido automaticamente pelo models.DateTimeField, que gerará uma data.
+            - Esta será a data de atualização da receita.
+            - models.DateTimeField(auto_now=True) faz com que, no momento da atualização da receita, seja gerada uma nova data.
+        # is_published
+            - Receberá um campo de valor booleano, models.BooleanField, que armazenará valores booleanos, passados pelo usuário ou pelo 
+              desenvolvedor.
+            - Verificar se a receita foi publicada no site: 
+            - Inicia com o valor padrão False, pois a receita deve ser analisada pelo adm, antes de publicada models.BooleanField(default=False).
+        # cover
+            - Receberá um campo de imagem, através do models.ImageField.
+            - models.ImageField possui um parâmetro chamado 'upload_to', que deve receber o caminho para o qual a imagem passada para o usuário
+              deve ser armazenada e uma data. Nesse caso, seria: upload_to='recipe/covers/%Y/%m/%d/'.
+            - Para usar o ImageField, deve-se instalar uma biblioteca de manipulação de imagens do Python, chamada Pillow: 
+              python -m pip install Pillow
+            - A pasta 'covers', mencionada acima, deverá envolver a seguinte edição no arquivo settings.py, abaixo da config de 'STATIC':
+
+                      MEDIA_URL: '/media/'
+                      MEDIA_ROOT: BASE_DIR / 'media'
+              
+                Com isso, haverá um 'covers' para cada app do projeto, dentro de uma pasta nomeada 'media', na raiz do projeto.
+
+    # Agora, criaremos o segundo model, e faremos sua relação com o model Recipe. Dentro de recipe/models.py, criou-se uma classe chamada 
+      Category. 
+        # A classe category só possuirá o atributo 'name'. name = models.CharField(max_length=65).
+        # Assim como as outras, deve herdar models.Model. 
+        # Deverá haver uma relação entre as duas, pois, uma categoria de alimento pode ter várias receitas, ex.: café, pão com ovo e tapioca 
+          são 3 receitas que se encaixam na categoria 'Café da manhã'.
+    # Lembre-se do estudo de Banco de Dados que, para relacionar duas tabelas, devemos ter uma Foreing Key, então, lá na classe Recipe, 
+      deve ser criado um atributo 'category', que será:
+                                    
+                                    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+        
+        # Isso porque estamos preenchendo três parâmetros essenciais de models.ForeignKey:
+            # to: Deve-se informar para qual outra tabela se está criando a ForeignKey (Category).
+            # on_delete: Se uma categoria na classe Category for deletada, o campo 'category' na Classe Recipe dessa receita deve receber o 
+              valor null.
+            # null: Informo que o valor nulo pode ser passado caso aconteça a situação acima.
+    # Também deverá ser criada uma classe Author, que também se relacionará com a classe Recipe, pois um mesmo autor pode publicar várias 
+      receitas. 
+        # A classe Author, deve ter como atributos as informações que forem convenientes sobre o autor. Nome, sobrenome, onde mora. Por agora, só
+          nome. name = models.CharField(max_length=30)
+        # Dito isto, lá na classe Recipe também deve haver um atributo chamado 'author', que também receberá uma ForeignKey para uma relação com 
+          outra tabela.
+        # No entanto, por agora, não criaremos a classe Author, mas importaremos o usuário do próprio django:
+          from django.contrib.auth.models import User. User é uma tabela/models, que poderemos passar para a ForeignKey de author, no lugar de
+          passar o model Author (que ainda não foi criado).
+
+# makemigrations e migrate - Aplicando as migrações
+    # O django utiliza o sistema de 'migrations' para salvar o que tabelas e colunas criados (models e atributos) na base de dados. 
+      É um sistema até muito semelhante, em certa escala, ao git. 
+      # Ex:  Criamos dois models (Recipe e Category) e cada um desses models representa uma tabela na base de dados. 
+        Então devemos informar para o django sobre essas tabelas.
+            # Se não existir na base de dados, crie. Se existir na base de dados, faça lá as modificações que foram feitas aqui.
+            # Para o que for feito nos models, deve ser gerada uma migration, para que o django realize a sincronia entre o código e a base de 
+              dados. 
+    # Inicialmente, o django passa todo o desenvolvimento do projeto reclamando sobre 18 migrações não aplicadas e que essas migrações devem 
+      ser aplicadas. Então inicialmente, deve ser realizado o comando 'python manage.py migrate', para realizar essas migrações iniciais.
+    # O comando python manage.py makemigrations é executado sempre que houver a criação ou modificação dos models. Esse comando é responsável
+      por criar os arquivos de migração (que marcam as modificações realizadas, lembre do git). No entanto, essas modificações ainda não foram
+      executadas no banco de dados, para isso, executamos o comando python manage.py migrate.
+  
+# Acessando a área administrativa do projeto
+  # Acessando a url '/admin', somos direcionados para a página da área administrativa do projeto, que pede usuário e senha.
+  # Para criar esse usuário, façamos: python manage.py createsuperuser
+    # Username: davia
+    # Email adress: davia@gmail.com
+    # Password: alex1032!?
+  # Dentro dessa área, existe a subarea "AUTHENTICATION AND AUTHORIZATION", que é utilizada com a parte de 'Users' serve para gerenciar e ceder 
+    permissões e autenticações aos usuários.
+  # Pode-se fazer com que os models criados apareçam na área administrativa, para posteriormente cria-se um CRUD.
+    # Para isso, dentro do arquivo admin.py da app, importa-se todos os models criados em models.py.
+    # Em seguida, para cada model, cria-se em admin.py uma classe NomedomodelAdmin(admin.ModelAdmin):
+    # Por fim, utiliza-se a função admin.site.register()   ->   admin.site.register(Nomedomodel, NomedomodelAdmin)
+    # Desta forma, pode-se criar, ler, editar e apagar novos dados dentro do banco de dados. Tem-se um CRUD pronto.
+  # No entanto, ao cadastrar novos dados e salvá-los, o django os apresenta através do nome do model para o qual foi criado o dado e o id: 
+    # nomedoModel Object (1), nomedoModel Object (2), nomedoModel Object (3), etc.
+    # Para resolver este problema, dentro do model em questão, cria-se:
+
+            def __str__(self):
+              return self.name    Faz com que a função responsável por mostrar nomedoModel Object (x), mostre o nome com o qual ele foi cadastrado, no atributo 'name'.
+  # Neste projeto, inicialmente, esse processo foi realizado com os models Recipe e Category.
+
+# Consertando problema do upload das imagens
+  # Ao cadastrar (nesse caso, uma receita com uma imagem) um novo dado com uma imagem (models.ImageField, lembre) e clicar no link da imagem,
+    o django mostra 404.
+  # Para consertar esta situação, precisamos informar o django da existência da pasta 'media' indicada no arquivo settings.py anteriormente. 
+    Segundo a própria documentação do django, o processo é o seguinte:  
+      # Dentro da urls.py do projeto, faça: 
+        from django.conf.urls.static import static    ->     Para configurar arquivos estáticos nas urls
+        from  django.conf import settings             ->     Essencial. Para importar configurações do arquivo settings.py. Poderia importar diretamente, mas essa é a forma recomendada, nesse caso.
+
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+# Django Shell e manipulando QuerySets
+  # Dentro do shell tem-se uma gama de interações possíveis: Buscar dados, CRIAR e salvar dados no banco de dados, criar tabelas, atributos, 
+    ver todos os dados, contar os dados, filtrar dados, etc.
+  # Dentro do ambiente virtual, digite: python manage.py shell. Importe seus models, pois eles são as tabelas do banco de dados afinal.
+  # Dentro dos models do django, por padrão, existe um manager, responsável por trabalhar com as querys na base de dados. Podemos configurar e 
+    criar novos managers, mas o manager padrão é muito completo: nomedomodel.objects. 
+      # Em dúvida, use a função dir()   ->    dir(nomedomodel.objects)
+      # Use, por exemplo, a função all():
+                                          listinha = nomedomodel.objects.all()      Dê um dir(listinha)
+      # Perceba que o retorno é um iterável do tipo QuerySet.
+      # Essas funções também podem ser utilizadas dentro dos models e mostradas nos templates. Ou seja, através delas, podemos mostrar dados do
+        banco de dados nos templates.
+      # Para mostrar os dados do banco de dados no template, cria-se uma variável dentro da view e atribui a ela o retorno de uma das funções 
+        vistas acima, POR EXEMPLO (obviamente, depois de importar os models para o arquivo de views). Passe essa variável como argumento para 
+        o parâmetro context da view e use {{% %}} para mostrar no template.
+  # Importe classes, crie objetos e os visualize no banco de dados.
+      # É possível criar/adicionar dados ao banco de dados (criar objetos através dos models (classes)) através do django shell, não necessitando
+        logar como admin no localhost para isto. Ex: cl1 = Category(name='café da tarde') 
+      # Para salvar o objeto criado, ou sempre que modificar um objeto e quiser a alteração no banco de dados, faça: objeto.save(). 
+        Para saber quais funções e modificações podem ser realizadas, digite dir(objeto).
+      # Lembre: cl1.save(). Para não precisar passar pelo lazy method do django e precisar da função save(), utilize a função objects.create():
+                                      novo_objeto = NomedoModel.objects.create(p1='a1', p2='a2', p3='a3'), 
+        ao invés de criar o objeto por instanciamento normal: novo_objeto = NomedoModel()
+      # Para mais informações sobre o objeto criado (ou o elemento no banco de dados), dir(objeto)
+      # Utilizamos argumentos nomeados para criar o objeto, pois a classe a partir do qual o mesmo foi criado não possui a função construtora.
+
+# Utilizando dados do banco de dados no template - Usando o model Recipe com QuerySet na view home
+  # Ao invés de incluir o arquivo receita.html 9 vezes, faremos um estrutura de repetição for:
+
+              {% for recipe in recipes %}
+                {% include 'recipes/partials/receita.html' %}
+              {% endfor %}
+      Sendo 'recipes' uma chave do dicionário context (da view Home) que contém todos os objetos que representam as receitas criadas. Obtivemos
+      eles através das QuerySets vistas mais acima, importando os models para view.py.
+  # Após isso, é só mostrar os dados no template: {{  }}
+    # Ao tentar mostrar a imagem das receitas, ao invés do intuitivo, faz-se: {{ recipe.cover.url }}.
+    # Ao tentar mostrar a data de criação, devemos utilizar um filtro do django, para que possamos mostrar a data no formato conhecido no Brasil.
+      Será: {{ recipe.created_at|date:"d/m/Y" }} às {{ recipe.created_at|date:"H:i" }}
+
+        
+
+
+

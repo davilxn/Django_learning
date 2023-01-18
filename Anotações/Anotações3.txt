@@ -58,6 +58,7 @@ Seção 6 - Django Staticfiles: arquivos estáticos (imagens, css, javascript e 
                                                 <link rel="stylesheet" href="{% static 'recipes/css/styles.css' %}">
             
             # O {% load static %} faz o django chegar até a pasta 'static', após isso, precisamos informar o caminho do arquivo no href;
+            # E por que não usar o include? Porque um arquivo é.html e outro é .css.
             # Esses pontos estão registrados na própria documentação do django.
              
 
