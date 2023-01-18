@@ -172,7 +172,40 @@ Seção 8 - Django Models e ORM (Object Relacional Map)
     # Ao tentar mostrar a data de criação, devemos utilizar um filtro do django, para que possamos mostrar a data no formato conhecido no Brasil.
       Será: {{ recipe.created_at|date:"d/m/Y" }} às {{ recipe.created_at|date:"H:i" }}
 
-        
+# get_object_or_404 e get_list_or_404
+  # get_object_or_404
+    # A função get_object_or_404 busca um elemento específico no banco de dados. Se encontrar, retorna o elemento como um objeto, se não, retorna
+      o erro 404.
+    # Funciona como um filtro, onde você deve informar as características do elemento que está procurando, para que ela possa buscar no banco
+      de dados. 
+    # Seu primeiro parâmetro é obrigatório e é o nome do model ao qual pertence o objeto (em qual tabela do banco de dados está o elemento).
+      Os outros parâmetros são kwags, e são os atributos do model.
+    # Exemplo: 
+              rec1 = get_object_or_404(Recipe, title='Pão com ovo', preparation_time=10, preparation_time_unit='minutos')
 
+                                            ou, geralmente usado, mais simples
 
+              rec1 = get_object_or_404(Recipe, pk=x), onde x é o id ou pk do elemento dentro da tabela Recipe, no banco de dados.
+
+    # Importante lembrar: Mesmo que não exista um campo 'pk' no seu model, ele é um campo necessário para a estruturação do banco de dados, 
+    então é criado automaticamente dentro do model. Na função get_object_or_404, o pk é um parâmetro nomeado, que pode ser usado como 'pk', (como
+    feito no exemplo acima) ou como 'id'.
+
+# Mexendo no Author
+  # No campo para mostrar o autor de cada receita, utilizamos {{ recipe.author }} (usamos um model bulit in do django, mas criaremos o nosso
+  futuramente), que retorna o username do usuário (no caso 'davia'). Mas pode ser melhorado, mostrando o nome e o sobrenome do usuário.
+
+                {{ recipe.author.first_name }} {{ recipe.author.last_name }}    
+
+  # first_name e last_name são atributos da classe User built in do django que foi utilizada para trabalhar com os usuários. 'Email adress' e 
+  'STAFF STATUS' também são atributos. Entre na área de admin do site e veja a subarea de USERS.
+  # No entanto, se o primeiro nome ou o segundo nome do usuário não estiverem cadastrados, nada será mostrado no campo 'autor'. Nessa ocasião, e
+  somente nessa ocasião, seria interessante mostrar o username do usuário.
+    # Para isso, utiliza-se o if do django no template partials/recipe.py:
+
+          {% if recipe.author.first_name %}
+                {{ recipe.author.first_name }} {{ recipe.author.last_name }} 
+            {% else %}
+                {{ recipe.author.username}}
+            {% endif %}
 

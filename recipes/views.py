@@ -19,10 +19,10 @@ def contato(request):
     return HttpResponse("Contato")
 
 def recipes(request, id):
-    rec = get_object_or_404(Recipe, pk=id, is_published=True)
-    return render(request, 'recipes/pages/recipes-view.html', context={
-        'recipe': rec,
+    rec = get_object_or_404(Recipe, pk=id)
+    return render(request, 'recipes/pages/recipes-view.html ', context={
         'is_detail_page': True,
+        'recipe': rec, 
     })
 
 
