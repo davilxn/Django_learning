@@ -166,7 +166,13 @@ quit()
         # No entanto, qualquer uma de nossas páginas que apresentar uma QuerySet com vários elementos, precisará de paginação. Isso inclui o 
           template categories. Ao invés de fazer o mesmo processo acima para todos as views, criaremos uma função, dentro de pagination.py que
           faça isso, a função make_pagination(). Nesse ponto, iremos, basicamente, copiar o conteúdo da view recipe e colar nessa nova função.
-          Em dúvida, veja o commit.
+          Em dúvida, veja o commit 'metade da paginação', que ocorreu antes dessa mudança.
+
+        # Ao utilizar a função na view search, aparentemente, o funcionamento ocorre como esperado. No entanto, ao procurar por um termo genérico
+        na área de pesquisa como 'a', por exemplo (muitas receitas o contém em seu título), e então clicarmos em um dos índices de paginação, ocorre
+        um erro. Isso porque, ao clicar no índice, interagimos direto com pagination.html que em seu interior, desconsidera a chave de query de url
+        (url query) chamada 'q', relevante no campo de busca. Para isso, deveremos passar ela como contexto na view, que será então carregada junto
+        com a página search, que extende o base.html, que inclui o pagination.html que irá usar essa informação de uma maneira esperta.
 
 
                 
