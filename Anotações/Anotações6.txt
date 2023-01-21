@@ -1,0 +1,80 @@
+Seção 10 - Usando o Request.GET no django
+
+# Criando uma URL para search - O que o usuário pesquisar na área de busca deve levar a uma página com os cards referentes a sua busca.
+    # Cria-se a URL - recipe/search/
+    # Cria-se a view search.
+    # Cria-se o template search.html dentro de templates/pages.
+    # Em partials/search.html, dentro da tag 'form' ponha o parâmetro method='get'. Isso já estava lá por padrão, mas era melhor deixar visível.
+      Isso faz com que tudo o que for digitado na área de pesquisa seja adicionado na URL.
+    #   Ponha também o parâmetro required=True, isso faz com que o preenchimento da área de pesquisa seja obrigatório.
+    # Ainda em partials.search.html, faça: form action={% url 'recipes-search' %}, isto é, toda vez que eu buscar algo na área de pesquisa, o 
+      formulário acionará a URL da view search que, por enquanto, retorna um template genérico.
+    # Devemos ainda ter acesso ao que foi digitado pelo usuário na área de pesquisa e faremos isso na view, através do request.GET:
+
+                    search_term = request.GET['q']
+
+        # Isso vai buscar dentro da URL que foi gerada pela busca do usuário na área de pesquisa, uma QueryString, que é um par chave-valor.
+            Dessa querystring, vai pegar o valor da chave 'q'.
+          'q', porque no template responsável pela área de pesquisa, partials/search.html, o parâmetro 'name' do input do form recebe o valor 'q'.
+        # No entanto, quando não existir um valor para essa chave (quando abrirmos a home e aí ninguém terpa digitado nada na área de pesquisa,
+          por exemplo), será gerado um erro. Para resolver, utilizaremos um método de dicionários no Python, que é o get():
+
+                                    search_term = request.GET.get('q').strip()
+        
+            # Se não houverem valores na chave 'q', será retornado None.
+            # strip() para eliminar os espaços à direita e à esquerda digitados pelo usuário.
+
+    # Agora iremos fazer com que a página pages/search.html mostre as receitas referentes ao que o usuário pesquisou na barra de pesquisa.
+      # Nesse sentido, iremos fazer com que o usuário possa digitar, por exemplo, somente palavras chave para encontrar uma receita, e não pre
+        cise digitar o nome inteiro da receita, sem erros. 
+      # Faremos uma busca no título e na descrição das receitas, verificando se as possíveis palavras chave que o usuário digitou ESTÃO
+        CONTIDAS dentro da descrição ou do título de alguma receita. Para problemas como este, inclusive como já foi mostrado, o django tem uma
+        nomenclatura específica para acessar e realizar muitas operações. 
+        Para a situação acima, faz-se:
+
+                        recipes = Recipe.objects.filter(title__contains=search_term)   
+
+        # Utilizando a função filter, estamos filtrando os elementos da tabela Recipe, que CONTÉM dentro de seu título ou descrição o termo 
+          digitado pelo usuário.
+
+                        recipes = Recipe.objects.filter(title__icontains=search_term)
+          
+          # Usaremos essa. O 'i' de 'icontains' indica pra o django que deve desconsiderar o case (se letras maiúsculas ou minúsculas).
+          # Você pode ter pensado que, para buscar o termo dentro da descrição da receita, faríamos algo como:
+
+                    recipes = Recipe.objects.filter(title__icontains=search_term, description__icontains=search_term)
+
+            # No entanto, isso buscaria por receitas que contém o search_term no título E (AND) na descrição. Para consertar, faremos um esquema
+              decorativo e estranho que, geralmente é utilizado só pra indicar pra o django usar o operador OR ao invés de AND na busca, mas que
+              também pode ser usado para processos mais avançados. Veja:
+
+                    from django.db.models import Q
+
+                    recipes = Recipe.objects.filter(
+                      Q(title__icontains=search_term) | Q(description__icontains=search_term)     # Estranho pra caralho
+                      )
+
+            # No entanto, ainda temos um erro fatal. O usuário pode buscar por termos e encontrar receitas não publicadas, pois não utiliza
+            mos o atributo is_published como critério. Consertando:
+
+                    recipes = Recipe.objects.filter(
+                      Q(
+                          Q(title__icontains=search_term) | Q(description__icontains=search_term)
+                      ), is_published=True
+                    )
+
+
+# Explicando tudo:
+  # O usuário é capaz de digitar algo na barra de pesquisa por conta da tag 'form' em partials/search.html. O conteúdo que o usuário digita é
+    capturado pela tag 'input', dentro da tag 'form' e "é armazenado" como valor do tipo string de uma chave chamada 'q'. 'q' porque esse o valor
+    que demos ao parâmetro 'name' da tag 'input'. Lembre-se, é armazenado como valor do tipo STRING. Se estiver esperando um inteiro ou qualquer
+    outro tipo, faça a conversão.
+  # Desse modo, tudo o que o usuário digitou no campo de pesquisa irá aparecer dentro da URL no navegador, como valor de uma chave chamada 'q'.
+    Ex: http://127.0.0.1:8000/?q=Recitadavovo
+  # Na view home estamos utilizando a função request.GET.get() para acessar a URL chamada na request feita no navegador (pelo usuário) e procurar
+    uma chave chamada 'q', capturar seu valor e armazenar na variável search_term. Após isso, utilizo a variável search term para fazer uma 
+    Query dentro do banco de dados. 
+  # Eu posso digitar um endereço/URL passando 3000 chaves arbitrárias: http://127.0.0.1:8000/?page=40/?olamundo=helloworld/?digaalgo=ola/
+    Se eu não fizer nada com os valores dessas chaves dentro da view, vai ser como se eu tivesse somente digitado http://127.0.0.1:8000/
+  # Sequência: Request (navegador, endereço, URL) -> path() -> view -> Banco de dados -> view -> template -> Response
+

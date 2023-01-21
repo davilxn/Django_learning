@@ -13,5 +13,7 @@ urlpatterns = [
     path("Sobre/", views.sobre, name='recipes-sobre'),      # Desnecessário, mas serviu de teste e exemplo
     path("Contato/", views.contato),
     path("", views.home, name='recipes-home'),
-    path("recipes/<int:id>/", views.recipes, name='recipes-recipe')    # Página principal do site
+    path("recipes/<int:id>/", views.recipes, name='recipes-recipe'),   
+    path("recipes/category/<int:category_id>/", views.category, name='recipes-category'),    
+    path("recipes/search/", views.search, name='recipes-search'),    
 ]

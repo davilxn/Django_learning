@@ -19,7 +19,10 @@ Seção 8 - Django Models e ORM (Object Relacional Map)
         # description 
             - Receberá um campo de preenchimento de caracteres (models.CharField).
         # slug
-            - Receberá um campo de preenchimento especial para slugs (models.SlugField).
+            - Receberá um campo de preenchimento especial para slugs (models.SlugField). 
+            - É interessante fazer com que esse campo recebe um valor único, isto é, cada receita tem um slug único. Slugs de diferentes receitas
+              devem ser diferentes.
+            - Para isso, usamos, o parâmetro unique: models.SlugField(unique=True)
         # preparation_time
             - Receberá um campo de preenchimento para números, que poderá ser models.IntegerField.
         # preparation_time_unit
@@ -136,6 +139,7 @@ Seção 8 - Django Models e ORM (Object Relacional Map)
 # Django Shell e manipulando QuerySets
   # Dentro do shell tem-se uma gama de interações possíveis: Buscar dados, CRIAR e salvar dados no banco de dados, criar tabelas, atributos, 
     ver todos os dados, contar os dados, filtrar dados, etc.
+  # QuerySets nada mais são que conjuntos de coisas, geralmente, um conjunto de elementos de um banco de dados, um conjunto de objetos.
   # Dentro do ambiente virtual, digite: python manage.py shell. Importe seus models, pois eles são as tabelas do banco de dados afinal.
   # Dentro dos models do django, por padrão, existe um manager, responsável por trabalhar com as querys na base de dados. Podemos configurar e 
     criar novos managers, mas o manager padrão é muito completo: nomedomodel.objects. 
@@ -160,6 +164,8 @@ Seção 8 - Django Models e ORM (Object Relacional Map)
       # Utilizamos argumentos nomeados para criar o objeto, pois a classe a partir do qual o mesmo foi criado não possui a função construtora.
 
 # Utilizando dados do banco de dados no template - Usando o model Recipe com QuerySet na view home
+  # Até agora, não estamos mostrando os dados do banco de dados no template como, por exemplo, as informações corretas das receitas, e sim,
+    informações genéricas.
   # Ao invés de incluir o arquivo receita.html 9 vezes, faremos um estrutura de repetição for:
 
               {% for recipe in recipes %}
@@ -173,9 +179,10 @@ Seção 8 - Django Models e ORM (Object Relacional Map)
       Será: {{ recipe.created_at|date:"d/m/Y" }} às {{ recipe.created_at|date:"H:i" }}
 
 # get_object_or_404 e get_list_or_404
+  # Além dos vistos abaixo, podemos ainda usar NomedoModel.objects.get()
   # get_object_or_404
     # A função get_object_or_404 busca um elemento específico no banco de dados. Se encontrar, retorna o elemento como um objeto, se não, retorna
-      o erro 404.
+      o erro 404. Retorna o objeto, e não uma QUERYSET.
     # Funciona como um filtro, onde você deve informar as características do elemento que está procurando, para que ela possa buscar no banco
       de dados. 
     # Seu primeiro parâmetro é obrigatório e é o nome do model ao qual pertence o objeto (em qual tabela do banco de dados está o elemento).
@@ -190,6 +197,23 @@ Seção 8 - Django Models e ORM (Object Relacional Map)
     # Importante lembrar: Mesmo que não exista um campo 'pk' no seu model, ele é um campo necessário para a estruturação do banco de dados, 
     então é criado automaticamente dentro do model. Na função get_object_or_404, o pk é um parâmetro nomeado, que pode ser usado como 'pk', (como
     feito no exemplo acima) ou como 'id'.
+  # get_list_or_404
+    # A função get_list_or_404 busca um conjunto (uma lista) no banco de dados. Se encontrar, retorna uma LISTA com os elementos como objetos, 
+      se não, retorna o erro 404. Retorna uma LISTA de elementos e não uma QUERYSET, logo não é possível usar funções do manager, como order_by().
+      Retorna uma lista, então use métodos de ordenação de listas.
+    # É possível passar uma QuerySet para o get_list_or_404.
+    # Funciona como um filtro, onde você deve informar as características do conjunto de elementos que está procurando, para que ela possa 
+      buscar no banco de dados. 
+    # Seu primeiro parâmetro é obrigatório e é o nome do model ao qual pertence o objeto (em qual tabela do banco de dados está o elemento).
+      Os outros parâmetros são kwags, e são os atributos do model.
+    # Exemplo:
+
+                    rec1 = get_object_or_404(Recipe, category__id=2)
+    
+    # Observação relevante: Continuaremos usando a função filter na view home. Isso porque, se não houverem receitas publicadas, é preferível 
+      dizer que não existem receitas publicadas do que mostrar uma página de erro, que é o que aconteceria utilizando a get_list_or_404.
+        # Para dizer que não existem receitas publicadas, basta ir em home.html e usar um if.
+
 
 # Mexendo no Author
   # No campo para mostrar o autor de cada receita, utilizamos {{ recipe.author }} (usamos um model bulit in do django, mas criaremos o nosso
@@ -208,4 +232,104 @@ Seção 8 - Django Models e ORM (Object Relacional Map)
             {% else %}
                 {{ recipe.author.username}}
             {% endif %}
+
+# Mexendo na categoria
+  # A esta altura, já está sendo mostrado os nomes corretos das categorias de receitas. No entanto, estas estruturas também são links, isto é,
+    ao clicar no nome da categoria da receita, você deve ser redirecionado para uma página específica contendo as receitas criadas que possuem
+    aquela categoria.
+    # Para isso, deverá ser criada uma view para as categorias, uma url e um template.
+    # Na view category, deveremos filtrar pela categoria as receitas que serão mostradas no template renderizado. Isso será feito através
+      da função filter: Recipe.objects.filter(). 
+        # Essa fução é semelhante ao get_object_or_404, mas pode retornar vários elementos e não somente 1. Inclusive, podemos utilizar ela, ao
+          invés do get_object_or_404. Na verdade, ela é muito mais semelhante à função get_list_or_404. Ambas vistas adiante.
+        # Como queremos filtrar elementos e, portanto, ter a possibilidade de ter o retorno de mais de um elemento do banco de dados, utilizamos 
+          o filter() que, posteriormente, será substituído por get_list_or_404.
+        # Para filtrar elementos com ela, faz-se o mesmo esquema com parâmetros realizado com a função get_object_or_404().
+        # No model Recipe, temos o campo 'category', que é uma Foreign Key para o model Category. Isto significa que, através do atributo
+          'category' do Model Recipe, podemos acessar atributos do Moldel Category, como por exemplo, o atributo 'name' ou o 'id'.
+        # Para acessar atributos de um model através de atributos de outro model, considerando a existência de uma atributo que representa
+          uma Foreign Key, basta fazer, por exemplo, no caso desse projeto:
+
+                              'title': get_object_or_404(Recipe, pk=2).category.name  
+            # Estou pegando um elemento da tabela Recipe, indo até seu atributo 'category' e através desse atributo, que é uma foreign key, 
+            acessando o atributo 'name' desse elemento na tabela 'Category'.
+
+            # Para acessar esse atributo, passando-o como PARÂMETRO pra uma função, faz-se:
+                              category__id ou category__name
+        
+        # É exatamento o que faremos na view category, utilizando a função filter: Recipe.objects.filter(category__id=category_id).
+        # Observação relevante: Continuaremos usando a função filter na view home.
+      # No entanto, ainda estamos chamando, através da view category, o template home.html. Devemos ter um específico para as categorias. Cria-se
+        assim, o categories.html.
+      # O usuário pode tentar acessar um id de categoria na URL que não existe. Nesse caso, devemos mostrar um 404 not found. Para isso, deve-se 
+        fazer um if dentro da view category:
+
+          if len(cat) != 0:
+            return render(request, 'recipes/pages/categories.html', context={
+              'recipes': cat,
+              'title': f"{cat.first().category.name}"  first() é um método de QuerySets, para obter o primeiro elemento da QuerySet.
+            })
+          else:
+            return Http404("Not Found :)")
+
+        # Isso porque se 'cat' tiver len == 0, significa que Recipe.objects.filter(category__id=category_id, is_published=True) não encontrou nenhum
+          elemento com as características necessárias (category__id == id_category e is_published == True), logo, pode-se se considerar que 
+          a categoria buscada não existe, já que ela não tem elementos.
+        
+        # No entanto, ao substituir o Recipe.objects.filter(category__id=category_id, is_published=True) por um get_list_or_404, esse if É
+          desnecessário.
+
+        # Podemos ainda fazer: get_list_or_404(Recipe.objects.filter(category__id=category_id, is_published=True)). O get_list_or_404 vai 
+          receber uma QuerySet, isto é, um iterávek de elementos/objetos e transformá-lo em uma LISTA de elementos/objetos. Se houverem
+          elementos dentro da QuerySet, ele retorna uma lista com os elementos, se não houverem, retorna 404. Isso é interessante porque
+          permite que trabalhemos com QuerySets como se fossem listas.
+        
+
+# OBSERVAÇÂO IMPORTANTE: Entenda com maestria a utilização das chaves do dicionário context das views no template. Nesse projeto, mudar
+'recipes' para 'recipe' ou vice-versa faz ABSOLUTAMENTE TODA a diferença.
+
+# Mostrando somente as receitas publicadas
+  # Agora, configuraremos o site para mostrar somente as receitas que estão publicadas, isto é, os elementos que tem o atributo is_published co
+  mo True.
+  # Para isso, ao invés de mostrar todas as receita com aa view home, através do Recipe.objects.all(), iremos mostrar só as filtradas, nesse 
+  caso, as que possuírem o atributo is_published=True. Para isso, intuitivamente, utiliza-se a função filter: Recipe.objects.filter().
+
+                                  Recipe.objects.filter(is_published=True)
+                                
+# Esse filtro também deverá ser aplicado na view category, pois ao clicar em uma categoria para ver somente as receitas daquela categoria, deve
+se ver somente as receitas que estão publicadas.
+
+# Corrigindo autor nulo
+  # Se um autor criar 10 receitas e então tiver seu usuário excluído, as 10 receitas serão mostradas sem autor. Ao invés disso, façamos um if
+    no template:
+
+                  {% if recipe.autor is not None %}
+                    <i class="fas fa-user"></i>
+                    {% if recipe.author.first_name %}
+                      {{ recipe.author.first_name }} {{ recipe.author.last_name }} 
+                    {% else %}
+                      {{ recipe.author.username}}
+                    {% endif %}
+                  {% else %}
+                    Desconhecido
+                  {% endif %}
+
+# Usando o campo 'preparation_steps_is_html'
+  # Se, ao contrário de uma pessoa normal, o usuário quiser, ao invés de digitar o passo-a-passo da receita normalmente, quiser digitar uma 
+    página html, ele deve marcar a opção 'preparation_steps_is_html' na hora de cadastrar a receita. Dessa forma, o nosso site deve entender 
+    que irá receber uma página html e que terá de renderizá-la.
+  # Para isso, na última parte de receita.html, que utiliza esse campo, faça
+
+          {% if is_detail_page is True %}
+        <div class="preparation-steps">
+            {% if recipe.preparation_steps_is_html is True %}
+                {{ recipe.preparation_steps|linebreaksbr }}       tag de filtro do django para mandar quebrar linhas
+            {% else %}                     
+                {{ recipe.preparation_steps|safe }}               tag de filtro do django pra garantir que o arquivo html é seguro e que o django pode renderizá-lo.
+            {% endif %}
+        </div>
+    {% endif %}
+
+  # A tag safe está sendo usada pois somente os editores do site vão decidir se a receita vai ou não ser publicada. Nunca, em hipótese alguma
+    podemos considerar seguro permitir a renderização de html ou js de qualquer usuário que seja.
 

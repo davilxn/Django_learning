@@ -16,7 +16,7 @@ Seção 3 - Ajustando o ambiente django + git e github com chaves SSH
         # git config --global user.email "davi.santos.alexandrino@gmail.com"
         # git config --global init.defaultBranch main
         # git init 
-    # Com o repositório no github criado e o repositório no git criado, basta conectar os dois:
+        # Com o repositório no github criado e o repositório no git criado, basta conectar os dois:
         # Geraremos uma chave SSH, porque se aproxima mais da realidade das empresas;
         # ssh-keygen   ->   Enter
         # Se quiser pôr senha, fique à vontade.
