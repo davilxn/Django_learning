@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, get_list_or_404
 from django.db.models import Q
 from django.core.paginator import Paginator
 from utils.pagination import make_pagination
+from django.contrib import messages
 
 # OBSERVAÇÃO: Ao utilizar a função Http404, faça 'raise Http404()' e não 'return Http404()' :).
 
@@ -16,6 +17,9 @@ PER_PAGES = 9
 def home(request):
     all_recipes = Recipe.objects.filter(is_published=True).order_by('-id')      # Página principal do site
     page_obj, pagination_range = make_pagination(request, all_recipes, PER_PAGES, 6)
+
+    messages.success(request, 'Parabéns, funcionou!')
+
     return render(request, 'recipes/pages/home.html', context={
         'recipes': page_obj,
         'tam': len(all_recipes),
@@ -39,7 +43,7 @@ def category(request, category_id):
     })
 
 def search(request):
-    search_term = request.GET.get('q').strip()
+    search_term = request.GET.get('q', '').strip()
 
     if not search_term:
         raise Http404()

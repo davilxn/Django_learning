@@ -2,6 +2,7 @@
 {% extends 'global/base.html' %}
 <title>{% block title %}Home | {% endblock title %}</title>
 {% block content %}
+    <!--{% include 'recipes/partials/messages.html' %}-->
         <div class="main-content main-content-list container">
             {% if tam > 0 %}
                 {% for recipe in recipes %}

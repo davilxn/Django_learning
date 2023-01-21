@@ -1,0 +1,105 @@
+Seção 12 - Django Messages - Enviado flash messages para o usuário
+
+# Nessa seção, iremos ver como mostrar mensangens na tela para o usuário. Se quisermos avisar algo para o usuário, ou confirmar algo com mensangens
+  sucesso ou de falha. 
+# O django possui o sistema de Flash Messages. Chamado assim porque as mensagens são carregadas dentro das views, e na proxima chamada 
+  da view, a mensagem desaparece.
+# Para utilizar uma Flash Message, faça: 
+    # Importação do módulo: from django.contrib import messages
+    # A chamada de funções de mensagens ocorre a partir da chamada direta do módulo com a função(nesse caso, messages.algumacoisa). Todas as 
+      funções de mensagem recebem como argumentos a request e uma mensagem.
+      Em uma view qualquer, digite: messages.succes(request, 'Que legal, funcionou'). Nesse caso, para mostrar a mensagem no template, não
+      precisaremos passar como contexto para a view.
+    # No template em questão, faça:
+        {% if messages %}
+          <div class="main-content center container">
+            {% for message in messages %}
+              <div class="message">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        # Isto é, se existirem mensagens, para cada mensagem na lista de mensagens, mostre a mensagem. 
+        # No entanto, dessa forma, cada vez que a view for carregada, a mensagem será carregada junto, ficando lá eternamente, e perdendo
+          o ponto da conceituação 'flash'.
+        # Interessantemente, essas mensagens são carregadas por seção. Eu estou mostrando a mensagem no template home.html e coincidentemente
+          estou chamando ela dentro da view home, mas poderia estar chamando de dentro de outra view e funcionaria.
+            Ex: Se eu chamar a mensagem dentro da view search, pesquisar algo e depois voltar para a view home, lá estará a mensagem.
+  # Message tags
+    # No settings.py, faça:
+      # from django.contrib.messages import constants
+      # Na última linha, faça:
+
+            MESSAGE_TAGS = {
+              constants.DEBUG: 'message-debug',
+              constants.ERROR: 'message-error',
+              constants.INFO: 'message-info',
+              constants.SUCCESS: 'message-success',
+              constants.WARNING: 'message-warning',
+            }
+        
+      # Isso serão as classes de css que utilizaremos para estilizar as mensagens.
+      # A estilização dessas mensagens é muito padronizada, então nem adiantar perder tempo pensando, é só pegar pronta, copiar e colar.
+
+      .message {
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-dark-text);
+  background: var(--color-gray-2);
+  color: var(--color-dark-text);
+}
+
+.message-error {
+  border: 1px solid var(--color-error-dark);
+  background: var(--color-error-light);
+  color: var(--color-error-dark);
+}
+
+.message-success {
+  border: 1px solid var(--color-success-dark);
+  background: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.message-warning {
+  border: 1px solid var(--color-warning-dark);
+  background: var(--color-warning-light);
+  color: var(--color-warning-dark);
+}
+
+.message-alert {
+  border: 1px solid var(--color-alert-dark);
+  background: var(--color-alert-light);
+  color: var(--color-alert-dark);
+}
+
+.message-info {
+  border: 1px solid var(--color-info-dark);
+  background: var(--color-info-light);
+  color: var(--color-info-dark);
+}
+
+.message-debug {
+  border: 1px solid var(--color-debug-dark);
+  background: var(--color-debug-light);
+  color: var(--color-debug-dark);
+}
+
+# Lembre-se de, ao usar as mensagens no template, garantir que as classes do css batem com os nomes das classes no html.
+# Agora, é feita a seguinte modificação:
+
+{% if messages %}
+        <div class="main-content center container"></div>
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            </div>
+    {% endif %}
+
+  # message.tags é justamente para acessar a classe da mensagem, configurada dentro de settings.py
+  # Pra não bagunçar a home.html, crie um partial message.html, copie e cole a parte da mensagem e só use o include na home.html.
+
