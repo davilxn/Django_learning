@@ -1,0 +1,146 @@
+Seção 13 - Django forms - Criando formulários soltos ou formulários baseados em Models
+
+# Nesta seção trabalharemos com os autores, resgistrando-os, criando uma tabela (Model), autenticando, entregando permissões e configurando
+  suas interações com o site.
+# De início, faremos uma APP 'authors', para que possamos trabalhar com autores de maneira adequada.
+    # Faça toda a configuração necessária para esta APP.
+    # Criação da view register_view.
+    # Criação do template register_view.html. Extensão do global/base.html.
+# Para cadastrarmos o usuário, precisaremos criar um formulário, e aí iniciamos o trabalho com os Django Forms.
+  # Crie dentro da app authors, sem pasta específica, um arquivo forms.py.
+  # Existe duas maneiras de criar um fomulário no django:
+    - Criar um formulário seco, sem dados atrelados a ele: from django.forms import forms
+    - Criar um formulário atrelado a um Model: from django.forms import ModelForm
+    - Como podemos utilizar as duas maneiras, faremos: from django import forms
+  # Queremos criar um formulário atrelado a um Model. No entanto, lá na app recipes, não criamos um model para usuários, mas utilizamos um model
+    pronto do django para usuários e, com ele, permitiremos que os usuários criem suas contas: from django.contrib.auth.models import User.
+  # Criamos em fomrs.py uma classe RegisterForm, que herda de models.ModelForm e, dentro dessa classe, obrigatoriamente, escreveremos a classe
+    Meta, que utlizaremos para passar metadados para o django. Dentro dela, escreveremos muita coisa específica, mas até esse ponto, tem-se:
+
+      class RegisterForm(forms.ModelForm):
+        class Meta:
+          model = User           # A qual model o formulário estará atrelado: User, afinal, queremos cadastrar usuários. Poderia ser a nossa classe Usuários, mas ela nem existe :)
+          fields = '__all__'      # Quais campos desse model o django vai pôr no formulário: todos (username, first_name, last_name e todos os atributos do model User)
+  
+  # Dentro da view register_view, criemos um formulário baseado nesse model e passá-lo no contexto. Faça:
+
+        form = RegisterForm()
+
+  # Mas é óbvio que não permitiremos que o usuário possa escolher suas próprias permissões ou dizer se ele é, por exemplo, um superusuário
+    ou não. Modifiquemos isto no Model RegisterForm, na classe Meta, mudando o atributo fields:
+
+    class RegisterForm(forms.ModelForm):
+        class Meta:
+          model = User           
+          fields = [
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'password',
+          ]
+        
+  # Modificando o template register_view.html
+    # Até esse exato ponto, os campos selecionados estão funcionando e aparecendo para serem preenchidos como formulário. No entanto, esses
+      campos são mostrados de uma maneira nada estética.
+    # Novamente, trata-se de algo cujo estilo, de maneira geral, não varia tanto, e não faz muita diferença se variar, portanto, pode ser 
+      copiado.
+            <div class="main-content center container">
+              <h2>Register</h2>
+            </div>
+
+            <div class="main-content container">
+              <form action="" method="POST">
+                {% csrf_token %}
+
+                <div class="form-content form-content-grid">
+                  {% for field in form %}
+                    <div class="form-group">
+                      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                      {{field}}
+
+                      {% if field.help_text %}
+                        <p class="help-text">{{ field.help_text }}</p>
+                      {% endif %}
+
+                      {{ field.errors }}
+                    </div>
+                  {% endfor %}
+                </div>
+
+                <div class="form-group">
+                  <button type="submit">Send</button>
+                </div>
+              </form>
+            </div>
+
+
+    # Perceba que utilizamos aqui o método POST. Isto porque agora estaremos buscando informações através do corpo da request e não da URL como
+      fazíamos com o GET.
+    # Também estamos utilizando a tag django CSRF (Cross-Site Request Forgery). CSRF é um tipo de ataque vindo de sites maliciosos. Um ataque 
+      CSRF envia solicitações não autorizadas de um usuário no qual o website confia. É, basicamente um site mandar um POST (request cujo método
+      é o POST) para o seu site, o seu site aceitar (porque, foi feito enquanto um usuário de confiança do site estava utilizando).
+      Por exemplo: Um usuário de confiança está logado no site, e outro site envia um post fazendo uma requisição para que a conta daquele 
+      usuário tenha seus dados modificados. O seu site vai aceitar essa requisição e vai realizar. 
+    # Isto significa que, para todo formulário de método POST no nosso site, deveremos utilizar a tag {% csrf_token %} do django. Através dela, 
+      estamos comunicando ao django que o formulário em questão, com o POST em questão, está sendo enviado pelo usuário (e está mesmo, pois é
+      um fomulário que nós criamos e nós passamos para o usuário responder quando ELE fez a requisição do formulário para que ELE mesmo
+      pudesse fazer seu cadastro). Dentro das tags html form, nos templates, antes de mais nada, utilize: {% csrf_token %}
+    # Para receber os valores preenchidos do formulário, devemos fazer o mesmo esquema de quando precisávamos receber dados específicos da 
+      URL com QueryStrings, mas dessa vez, por procurarmos dados do corpo da requisição, utilizamos o request.POST e não o request.GET.
+      # Dentro da view register_view, faça:
+
+        if request.POST:
+          form = RegisterForm(request.POST)     
+        else:
+          form = RegisterForm()
+      
+      # Isto é, se o fomulário tiver sido preenchido, a variável form receberá os dados do fomulário e faremos algo com eles. Do contrário, 
+        recebe um fomulário vazio para ser preenchido.
+      # No entanto, na view estamos recebendo os dados do formulário, mas no template não estamos fazendo nada, pois quando enviamos o formulário
+        preenchido, a página simplesmente recarrega o formulário (os dados foram recebidos, mas a página só recarregou o fomulário). 
+        Para resolver esse problema, iremos criar uma nova view e mudar o template do formulário para, assim que enviarmos o formulário, carregar
+        mos outra view e outro template. Criemos a view register_create. 
+          # Isso vai mudar inclusive a estrutura da register_view, pois a register_view vai carregar somente o formulário vazio, enquanto a 
+            view register_create vai receber os dados do formulário preenchido e carregar outra coisa. Essa nova view não será responsável
+            por carregar um novo template, e sim por receber, ler e validar os dados recebidos com o preenchimento do formulário e, a partir da
+            validação, registrar o novo usuário ou retorna uma mensagem dizendo que houve algum erro com os dados do formulário.
+          # Dentro dessa nova view, haverá um IF para verificar se existe uma request.POST:
+
+                        if not request.POST:
+                          raise Http404()
+
+          # A única maneira de acessar a página cuja url é register/create é preenchendo um formulário e o enviando, pois só quando enviamos o
+          formulário, estamos requerindo um POST. Quando digitamos a url no navegador diretamente, estamos requisitando um GET, por padrão
+          e isso resultará no IF acima.
+        # Uma coisa que deverá entrar em funcionamento é: a register_view é chamada e carrega o formulário vazio a ser preenchido. O usuário
+          preenche e envia, chamando a register_create, que fará a validação. Se a validação detectar algum erro, a register_view deve ser
+          chamada novamente, mostrando um novo fomulário a ser preenchido, cujos campos que foram preenchidos erroneamente foram apagados e os 
+          que foram preenchidos corretamente, mantidos, além de mostrando uma mensagem de erro informando o que aconteceu. Mas para isso, preci
+          saríamos passar os dados recebidos pela register_create para a register_view, e isso é, com os atuais conhecimentos, impossível.
+            # Para consertar esse problema, utilizaremos um mecanismo chamado SESSION. 
+              Uma SESSION está atrelada ao ID do navegador do usuário, isto é, quando o usuário acessa o sistema, o sistema registra o ID da
+              sessão do usuário, mais especificamente, o ID do navegador do usuário. Então cada usuário que acessar o site, ou cada navegador 
+              que acessar o seu site, terá um cookie com esse ID de sessão registrado. A sessão só muda quando entramos no site por uma aba
+              anônima, ou com um navegador diferente ou com outro usuário. Esse mecanismo é o que vai ser utilizado para sabermos se um usuário
+              está logado ou não. A partir disso, podemos coletar informações referentes a essa sessão do usuário e salvar no nosso servidor. 
+              # Se eu quiser, por exemplo, acessar o número de vezes que uma pessoa acessou a register_view dentro daquela sessão, eu crio uma
+                variável dentro da sessão, acessando a sessão diretamente (e essa variável será um dicionário):
+
+                            request.session['access_number'] = algumacoisa
+              
+              # Semore que essa view for carregada, deverá ter seu valor incrementado em 1 (afinal, foi mais um acesso àquela página). Mas para
+                isso, devemos criar a variável de forma a realizar a seguinte verificação: 
+
+                            request.session['number'] = request.session.get('number') or 0
+                            request.session['number'] += 1
+
+                    Isto é, a variável request.session irá receber o valor 0 (se essa variável ainda não tiver nenhum valor, isto é, se é a
+                    primeira vez do usuário acessando o site) ou então irá receber o valor que ela já possui (se esta não tiver sido a primeira 
+                    vez que o usuário acessa o site).
+                    Para mostrar no template, é só passar na context.
+              # No entanto, isso foi só pra exemplificar. Agora, utilizaremos para resolver o problema proposto anteriormente.
+            # Para resolver o problema, devemos ser capazes de trafegar dados entre a register_create e a register view, e para isso, utilizare
+              mos a SESSION.
+                # Assim que recebermos os dados do formulário preenchido na register_create, iremos salvá-lo na sessão. Para isso, modifica-se
+                  a register create da seguinte forma: (a mudança estará registrada no github).

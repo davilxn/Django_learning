@@ -8,7 +8,7 @@ Seção 12 - Django Messages - Enviado flash messages para o usuário
     # Importação do módulo: from django.contrib import messages
     # A chamada de funções de mensagens ocorre a partir da chamada direta do módulo com a função(nesse caso, messages.algumacoisa). Todas as 
       funções de mensagem recebem como argumentos a request e uma mensagem.
-      Em uma view qualquer, digite: messages.succes(request, 'Que legal, funcionou'). Nesse caso, para mostrar a mensagem no template, não
+      Em uma view qualquer, digite: messages.success(request, 'Que legal, funcionou'). Nesse caso, para mostrar a mensagem no template, não
       precisaremos passar como contexto para a view.
     # No template em questão, faça:
         {% if messages %}

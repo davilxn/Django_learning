@@ -118,6 +118,10 @@ Agora, iremos entender mais profundamente os arquivos e estruturas do django.
 
   # Como iremos mover as views para outro arquivo (views.py de recipes), devemos importá-las para que possamos continuar utilizando-as no 
     arquivo Urls.py para configuar as paths.
+      # Quando digitarmos qualquer URL referente a uma view da app recipes, uma vez que a path acima une o endereço digitado com o endereço
+        raiz tendo '' como intermediário, teremos endereços referentes à app recipes do tipo http://127.0.0.1:8000/Exemplo/
+      # Quando criamos outras apps, ao invés de '', teremos 'nomedaapp'. Dessa forma, para acessar a url que leva à página 'Exemplo',
+        dentro de outras apps, o endereço seria: http://127.0.0.1:8000/nomedaapp/Exemplo/
 
   # Isso resulta em: a view.py e urls.py das aplicações serão arquivos horríveis, no entanto, a view.py e urls.py do projeto será limpa, pois lá
     é o coração.
