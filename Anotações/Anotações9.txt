@@ -1,4 +1,4 @@
-Seção 13 - Django forms - Criando formulários soltos ou formulários baseados em Models
+'Seção 13 - Django forms - Criando formulários soltos ou formulários baseados em Models
 
 # Nesta seção trabalharemos com os autores, resgistrando-os, criando uma tabela (Model), autenticando, entregando permissões e configurando
   suas interações com o site.
@@ -22,25 +22,89 @@ Seção 13 - Django forms - Criando formulários soltos ou formulários baseados
           model = User           # A qual model o formulário estará atrelado: User, afinal, queremos cadastrar usuários. Poderia ser a nossa classe Usuários, mas ela nem existe :)
           fields = '__all__'      # Quais campos desse model o django vai pôr no formulário: todos (username, first_name, last_name e todos os atributos do model User)
   
-  # Dentro da view register_view, criemos um formulário baseado nesse model e passá-lo no contexto. Faça:
+    # Dentro da view register_view, criemos um formulário baseado nesse model e passá-lo no contexto. Faça:
 
-        form = RegisterForm()
+          form = RegisterForm()
 
-  # Mas é óbvio que não permitiremos que o usuário possa escolher suas próprias permissões ou dizer se ele é, por exemplo, um superusuário
-    ou não. Modifiquemos isto no Model RegisterForm, na classe Meta, mudando o atributo fields:
+    # Mas é óbvio que não permitiremos que o usuário possa escolher suas próprias permissões ou dizer se ele é, por exemplo, um superusuário
+      ou não. Modifiquemos isto no Model RegisterForm, na classe Meta, mudando o atributo fields:
 
-    class RegisterForm(forms.ModelForm):
-        class Meta:
-          model = User           
-          fields = [
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'password',
-          ]
-        
-  # Modificando o template register_view.html
+      class RegisterForm(forms.ModelForm):
+          class Meta:
+            model = User           
+            fields = [
+              'username',
+              'first_name',
+              'last_name',
+              'email',
+              'password',
+            ]
+  ### Trabalhando com labels, widgets, erros e atributos dos campos
+    # Ao invés de utilizar o atributo fields, pra selecionar os campos um por um, pode-se utilizar o 'exclude', que vai selecionar todos os 
+      campos, menos os que você selecionou.
+    # Labels: Mensagem visível que vai aparecer do lado de fora das caixinhas dos campos. Faz-se, dentro da class Meta, 
+      dentro do Model responsável pelo formulário (RegisterForm):
+
+                    labels = {
+                      'username': 'Digite seu nome de usuário',
+                      'firts_name': 'Digite seu nome',
+                      'last_name': 'Digite seu sobrenome',
+                      'email': 'Digite seu email',
+                      'password': 'Digite sua senha'
+                    }
+    # help_texts: Texto de ajuda de cada campo que vai aparecer para o usuário. Ex: 'Este campo deve ser preenchido somente com números inteiros.'
+      Faz-se:
+
+                    help_texts = {
+                      'email': 'Este email deve ser um email válido.'
+                    }
+    # error_messages: As mensagens de erro que aparecerão, caso, ocorra algo inadequado, pelo preenchimento do formulário. Os erros tem códigos,
+      que virão na forma de dicionário, indicando que mensagem vai aparecer, de acordo com o tipo de erro:
+
+                    error_messages = {
+                      'username': {
+                        'required': 'Esse campo não pode estar vazio',
+                        'max_length': 'Este campo não pode ultrapassar os 50 caracteres.'
+                        'invalid': 'Usado para passar mensagens mais genéricas'
+                      }
+                    }
+    # widgets: Widgets geralmente são utilizados para pôr placeholders em campos (mensagens dentro dos campos que aparecem enquanto nada é 
+    digitado):
+
+                widgets = {
+                  'first_name': forms.TextInput(attrs={
+                    'placeholder': 'Digite seu nome aqui'
+                  }),
+                  'password': forms.PasswordInput(attrs={
+                    'placeholder': 'Digite sua senha aqui'
+                  })
+                }
+  ### Sobrescrevendo campos do formulário completamente
+    # Dentro da classe de formulário RegisterForm() crie um novo campo (fora da classe Meta, portanto, não atrelado ao model de usuário):
+
+              password2 = forms.CharField(
+                required = True,
+                widget = forms.PasswordInput(attrs={
+                  'placeholder': 'Repita sua senha'
+                })
+              )
+              
+    
+    # Para sobrescrever um campo que está dentro da classe Meta, basta recriálo, com o mesmo nome, fora da classe Meta. Sobrescrevendo o campo
+      password, por exemplo:
+
+          password = forms.CharField(
+                required = True,
+                widget = forms.PasswordInput(attrs={
+                  'placeholder': 'Repita sua senha'
+                }),
+                error_messages={
+                  'required': 'Este campo deve ser preenchido'
+                },
+                help_text = ''Informe seu email acima'
+              )
+ 
+  ### Modificando o template register_view.html
     # Até esse exato ponto, os campos selecionados estão funcionando e aparecendo para serem preenchidos como formulário. No entanto, esses
       campos são mostrados de uma maneira nada estética.
     # Novamente, trata-se de algo cujo estilo, de maneira geral, não varia tanto, e não faz muita diferença se variar, portanto, pode ser 
@@ -144,3 +208,115 @@ Seção 13 - Django forms - Criando formulários soltos ou formulários baseados
               mos a SESSION.
                 # Assim que recebermos os dados do formulário preenchido na register_create, iremos salvá-lo na sessão. Para isso, modifica-se
                   a register create da seguinte forma: (a mudança estará registrada no github).
+
+                        POST = request.POST
+                        request.session['register_form_data'] = POST
+                        form = RegisterForm(POST)
+
+                # Nesse caso, a view register_create não vai carregar um template, nem renderizar nada. Vai somente ler os dados do POST, 
+                validar, e retornar para a register_view. Dessa forma, devemos ser redirecionados para ela:
+
+                        return redirect('authors-register')
+
+                # Dessa maneira, como salvamos os dados do formulário na sessão, poderemos acessá-los a partir da register_view. Assim, faça
+                  mos na register_view, para que ela receba esses dados:
+
+                    register_form_data = request.session.get('register_form_data', None) # Isto é, ou recebe o valor da chave passada (que está dentro da sessão) ou o valor None.
+                    form = RegisterForm(register_form_data)
+
+                # Isso porque a register_view pode receber dois valores que representam os dados do formulário: ou o register_form_data (o valor recebido da
+                  register_create, depois que o usuário preencheu e a register_create validou os dados) ou None (Se o usuário tiver solicitado um formulário
+                  de cadastro para preencher pela primeira vez).
+                  # Até esse momento, o que está acontecendo é o seguinte: O usuário solicita o formulário pela primeira vez, o preenche e o
+                    envia. Quando envia, a register_create recebe, lê, valida e salva os dados preenchidos na sessão e redireciona o site
+                    para a register_view, chamando-a e passando os valores que foram preenchidos. Então o usuário está respondendo o formulário
+                    e quando ele o envia, a página é recarregada e reaparece com os mesmos dados que ele digitou lá. Isso acontece porque a 
+                    register_create ainda não está terminada pois, até este ponto, ela ainda não faz validação.
+                    Posteriormente, após realizar a validação, faremos com que, caso não tenha ocorrido erro e o usuário tenha podido se cadastrar,
+                    seja direcionado para outra página ou apareça uma mensagem de sucesso ou apareça o fomulário de novo, mas limpo, sem dados. caso
+                    ocorra algum erro, aparecerá o formulário com indicações de onde houve erro. Mudança importante, registrada no github.
+    
+  ### Validando campos do formulário
+    # Utilizando clean_field para validar um campo específico
+      # Para isso, dentro da classe de formulário (fora da Meta), devemos escrever uma função com o seguinte formato:
+
+            def clean_nomedocampo(self):
+              data = self.cleaned_data.get('nomedocampo')
+              
+              # Exemplo de validação
+
+              if 'atenção' in data:
+                raise ValidationError("Não digite a palavra atenção", code='invalid')
+
+              return data
+
+        # Onde:
+          # Devemos importar a função ValidationError: from django.core.exceptions import ValidationError
+          # 'invalid' é a mensagem genérica de erro que foi citada anteriormente.
+          # Essa função é uma função específica do django, que funciona com base nos campos do formulário criado. Ao não passar pela validação
+            dessa função, o formulário não é enviado.
+
+      # Utilizando o método clean para validar um campo que depende de outro no formulário (os de senha)
+        # O método clean é um método específico do django que, ao contrário do anterior, não se restringe a apenas um campo, mas tem acesso a todos,
+          isto é, valida o formulário como um todo, logo, deve ser chamado somente depois dos clean_field. Deve ser feito no seguinte formato:
+
+              def clean(self):
+                cleaned_data = super().clean()
+                password = cleaned_data.get('password')
+                password2 = cleaned_data.get('password2')
+
+                if password != password2:
+                  raise ValidationError({
+                    'password':'As senhas estão diferentes',
+                    'password2': 'As senhas estão diferentes'
+                    )
+    
+  # Salvando os dados do formulário na base de dados
+    # Após validar os dados preenchidos do formulário, devemos salvar esses dados na base de dados, mandar uma mensagem para o usuário 
+      informando que os dados foram salvos, isto é, que ele foi cadastrado com sucesso e, na hora de recarregar o formulário, devemos carregá-lo
+      limpo, ou seja, limpar o register_form_data que foi salvo na sessão.
+    # is_valid e save para salvar dados do formulário na base de dados
+      # Para terminar de validar o formulário, dentro da register_create, faz-se:
+
+          if form.is_valid():
+            form.save()
+            messages.success(request, 'Your user has been created, please log in.')
+            del(request.session['register_form_data'])
+
+        # Onde:
+          # A função is_valid() verifica se o formulário recebido é válido de acordo com as funções clean e retorna True ou False
+          # form.save() vai salvar os dados do formulário na base de dados.
+          # messages.sucess vai mostrar a mensagem. from django.contrib import messages
+          # del() vai limpar os dados presentes dentro de alguma chave.
+  
+  # Corrigindo erros de preenchimento - Problema na senha e no email
+    # Senha: Quando o usuário é cadastrado, a senha fica com formato de senha inválido. Isso porque estamos salvando ela como string, o que 
+      deve ser consertado.
+
+      Lá na register_create, substitua o form.save() por:
+
+          user = form.save(commit=False)
+          user.set_password(user.password)
+          user.save()
+
+        # Onde:
+          # commit=False faz com que os dados não sejam salvos na base de dados, mas na variável.
+          # user.set_password(): Essa função recebe uma string (que, nesse caso, deve ser a senha do usuário) e vai criptografar essa string.
+          # user.save() salva os dados (tendo, nesse caso, o valor de um dos campos criptografado, que é a senha)
+    # Email: Estamos permitindo que usuários diferentes possuam o mesmo email. Para consertar, na classe do formulário, fora do Meta, faz-se
+      uma validação simples:        (faça o mesmo com o nome de usuário)
+
+        def clean_email(self):
+        email = self.cleaned_data.get('email', '')
+        exists = User.objects.filter(email=email).exists()
+
+        if exists:
+            raise ValidationError('Este e-mail já foi cadastrado.')
+
+        return email
+  
+  # Para fins organizacionais, iremos mover arquivos de estilo e partials que pertecem ao app recipe e que estão sendo usados no app authors
+    para pastas globais. Antes de fazer estas modificações, irei deixar o commit: reorganizando os arquivos da aplicação
+      # styles.css do app recipes para o base_static (se não existir essa pasta, crie)
+      # Fora receita.html, todas as partials da pasta templates do app recipe devem ir para base_templates
+
