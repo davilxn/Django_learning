@@ -90,7 +90,7 @@
               )
               
     
-    # Para sobrescrever um campo que está dentro da classe Meta, basta recriálo, com o mesmo nome, fora da classe Meta. Sobrescrevendo o campo
+    # Para sobrescrever um campo que está dentro da classe Meta, basta recriá-lo, com o mesmo nome, fora da classe Meta. Sobrescrevendo o campo
       password, por exemplo:
 
           password = forms.CharField(
@@ -284,7 +284,9 @@
             del(request.session['register_form_data'])
 
         # Onde:
-          # A função is_valid() verifica se o formulário recebido é válido de acordo com as funções clean e retorna True ou False
+          # A função is_valid() verifica se o formulário recebido é válido. O is_valid() não verifica se os dados são válidos, apenas verifica 
+            se os dados que o usuário digitou cumpriram com as regras do formulário e se as validações escritas na classe do form com as funções
+            clean deram certo.
           # form.save() vai salvar os dados do formulário na base de dados.
           # messages.sucess vai mostrar a mensagem. from django.contrib import messages
           # del() vai limpar os dados presentes dentro de alguma chave.
@@ -318,5 +320,84 @@
   # Para fins organizacionais, iremos mover arquivos de estilo e partials que pertecem ao app recipe e que estão sendo usados no app authors
     para pastas globais. Antes de fazer estas modificações, irei deixar o commit: reorganizando os arquivos da aplicação
       # styles.css do app recipes para o base_static (se não existir essa pasta, crie)
-      # Fora receita.html, todas as partials da pasta templates do app recipe devem ir para base_templates
+      # Fora receita.html, todas as partials da pasta templates do app recipe devem ir para base_templates (crie, dentro  de global, uma pasta
+      chamada partials)
+      # Agora, iremos usar o esquema do include com o form, para que possamos reaproveitar a página html do formulário.
+        # Dentro de base_templates/global/partials, crie um arquivo chamado form.html.
+        # Dentro do arquivo register_view.html, retira-se o trecho de código responsável pela amostragem do formulário, cola-se no arquivo
+          base_templates/global/partials/form.html e inclui esse arquivo em register_view.html
+  
+  # Requirements.txt
+    # Esse arquivo mostra todas as bibliotecas, módulos e aplicações que foram utilizadas para construir a aplicação.
+    # Para criá-lo automáticamente, faz-se, no venv: pip freeze > requirements.txt. Se não funcionar de primeira, tente forçar a reinstalação
+      do pip: python -m pip install --upgrade --force-reinstall pip
+    # No settings.py, se houver uma configuração chamada 'USE_L10N', remova-a.
+  
+  # Criando as URL's, Views e Templates para login do usuário:
+    # Crie as views login_view e login_create. Crie as URL's delas, e garanta que os atributos 'name' fiquem padronizados, mas distintos entre
+     si.
+    # O template que a login_view vai renderizar pode ser a cópia renomeada do register_view. Vai estar incluindo o form.html, mas, como
+      o template que inclui está sendo chamado por uma view que não está passando dados, nada aparece.
+    # Feito isso, devemos criar um formulário para login do usuário:
+      # Este formulário será criado dentro do arquivo forms.py, será uma nova classe de nome LoginForm e herdará, não de forms.ModelForm, mas de
+        form.Form, isto porque agora não faremos um formulário atrelado a um Model, mas um formulário solto (volte lá em cima e veja). Como é o
+        mesmo arquivo, nem precisa importar mais nada.
 
+
+        class LoginForm(forms.Form):
+          username = CharField()
+          password = CharField(
+            widget = forms.PasswordInput()
+          )
+
+  # Autenticando o usuário com authenticate e login
+    # Para autenticar o usuário e realizar o login dele, poderíamos fazer todo o esquema que foi feito com a register_view e register_create
+      de validação com funções clean_field, mas em vez disso, utilizaremos as duas funções específicas do django que foram criadas para isso:
+      authenticate e login:
+      from django.contrib.auth import authenticate, login
+      # authenticate: Este método irá verificar se os dados de login estão corretos (de acordo com os dados presentes no banco de dados) e salvar 
+        a resposta em uma varuável. Há dois retornos possíveis para o método authenticate: None, se os dados informados estiverem incorretos, e o 
+        usuário, caso os dados estejam corretos. Então essa função, basicamente retorna um usuário ou None.
+        Podemos passar quantos argumentos quisermos para a authenticate, mas geralmente um login pode ser realizado somente com nome de usuário
+        e senha, que podemos obter através do request.POST ou do form.cleaned_data.get().
+      # Verificamos este retorno e, caso o usuário exista no banco de dados, utilizamos o método login para logá-lo na aplicação. A partir daí, 
+        este usuário estará autenticado no projeto. Isto é, se o retorno do authenticate não for None, teremos um usuário a logar, através da
+        login().
+      # Dentro da login_create iremos verificar se os dados preenchidos cumprem as normas do formulário, através do método is_valid(). Se sim, 
+        passaremos os parâmetros username e password (os resultados dos campos do formulário de login) e passaremos para a função authenticate
+        que vai buscar no banco de dados e retornar um usuário ou None. Se retornar um usuário, significa que os dados username e password foram
+        autenticados e o usuário existe e foi autenticado, então podemos efetuar seu login, através da função login, que recebe a request e o 
+        usuário.
+  
+  # Criando o logout
+    # Cria-se a view logout_view, onde utilizaremos a função nativa do django para logout que, convenientemente, chama-se logout(), que recebe 
+      uma request. Essa view será também responsável por redirecionar o usuário de volta para a página de login, uma vez que ele estivesse na 
+      página de logout, prestes a efetuar o logout.
+    # Essa view de logout requer, obviamente, que um usuário esteja logado. Não faz sentido um usuário não logado acessar uma página de logout.
+      Logo, essa página é uma página restrita na nossa aplicação. Por exemplo, quando você não está logado no facebook, terá acesso a algumas 
+      coisas, e não terá acesso a outras, como acessar a página de configurações e acessar o logout. Para realizar essa configuração na nossa 
+      aplicação, o django possui um decorator chamado 'login_required': from django.contrib.auth.decorators import login_required. Esse decorator
+      é utilizado nas views fechadas, que você deseja que só possam ser acessadas se o usuário estiver logado, assim como será com a dashboard
+      do usuário, a página de perfil para atualizar os dados do usuário e etc. A login_required recebe como argumentos a URL de login (login_url)
+      e um redirect_field_name que recebe um nome de query URL.
+      Imagine que você clicou em algo que precisaria de login para acessar. Esse decorator vai enviar o usuário diretamente para a página de 
+      login. Enquanto isso, a URL que você tentou acessar vai ser armazenada em um campo da URL que vai ser denominado pelo nome que você puser
+      dentro de redirect_field_name. Quando você efetuar o login, você, através desse mecanismo, pode ser redirecionado para a página que você
+      havia tentado acessar antes de ser redirecionado para efetuar login.
+    # Dessa forma, a função logout tem a seguinte cara: 
+
+          @login_required(login_url='authors-login', redirect_field_name='next')
+          def logout_view(request):
+              logout(request)
+
+    # Agora, façamos modificações no template de login para que o usuário possa fazer logout. 
+      # No template de login, faça uma verificação para saber se o usuário encontrado (passou pelo is_valid()) foi autenticado, através do 
+        atributo is_authenticated:
+
+        {% if request.user.is_authenticated %}
+          <p>Você foi logado como {{ request.user.username }}</p>
+          Por favor, <a href="">clique aqui</a> para efetuar log out.
+        {% endif %}
+
+    # Devemos ainda proteger o ato do logout contra ataques csrf. Para isso, ao invés de utilizarmos links de redirecionamento, utilizaremos
+      o POST.

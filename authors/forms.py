@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.contrib.auth import authenticate, login
 
 class RegisterForm(forms.ModelForm):
     password2 = forms.CharField(
@@ -13,18 +14,6 @@ class RegisterForm(forms.ModelForm):
         },
         label="Repita sua senha:"
     )
-
-    """password = forms.CharField(
-        required=True,
-        widget= forms.PasswordInput(attrs={
-            'placeholder': 'Digite sua senha'
-        }),
-        error_messages={
-            'required': 'Este campo deve ser preenchido',
-            'invalid': 'Erro'
-        },
-        label='Senha:'
-    )"""
     class Meta:
         model = User           
         fields = [
@@ -111,3 +100,24 @@ class RegisterForm(forms.ModelForm):
             'password':'As senhas estão diferentes',
             'password2': 'As senhas estão diferentes'
             })
+
+
+class LoginForm(forms.Form):
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Digite sua senha'
+        }),
+        error_messages={
+            'required': 'Este campo deve ser preenchido.'
+        },
+        label='Nome de usuário'
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Digite sua senha'
+        }),
+        error_messages={
+            'required': 'Este campo deve ser preenchido.'
+        },
+        label='Senha'
+    )
