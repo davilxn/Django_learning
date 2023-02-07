@@ -1,0 +1,7 @@
+{% if request.user.is_authenticated %}
+      <div class="login-message center">
+        Você foi logado como {{ request.user.username }}.
+        Por favor, <a href="{% url 'authors-logout' %}">clique aqui</a> 
+        para efetuar logout.
+      </div>
+{% endif %}

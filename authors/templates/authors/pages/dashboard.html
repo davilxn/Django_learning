@@ -1,0 +1,25 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Dashboard ({{ user }}) | {% endblock %}
+{% block content %}
+<div class="main-content center container">
+    <h2> Dashboard ({{ user }})</h2>
+    {% include 'global/partials/messages.html' %}
+    {% include 'authors/partials/login_message.html' %}
+  </div>
+  <div class='authors-dashboard-container'>
+    <h2>Suas receitas</h2>
+    <ul>
+      {% if tam > 0 %}
+        {% for receita in receitas %}
+          <li>
+            <a href='#'>{{ recipe.title }}</a>
+          </li>
+        {% endfor %}
+      {% else %}
+        <p>Você não possui receitas não publicadas.</p>
+      {% endif %}
+    </ul>
+  </div>
+    
+{% endblock %}

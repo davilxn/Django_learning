@@ -230,8 +230,29 @@
             padding-top: 0;
         }
 
-        .periferic-content {
+        .login-message {
             margin-top: 20px;
+            margin-bottom: -30px;
+        }
+
+        .login-message > a {
+            text-decoration: none;
+        }
+        
+        .authors-dashboard-container {
+            max-width: 64rem;
+            text-align: left;
+            padding: var(--spacing-gutter-medium);
+            margin: auto;
+        }
+
+        .authors-dashboard-container h2,
+
+        .authors-dashboard-container p,
+
+        .authors-dashboard-container ul {
+            list-style-type: none;
+            margin: 1rem 0;
         }
 
         .main-content-list {

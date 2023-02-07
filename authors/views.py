@@ -4,6 +4,7 @@ from .forms import RegisterForm, LoginForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from recipes.models import Recipe
 
 # Create your views here.
 def register_view(request):
@@ -58,9 +59,18 @@ def login_create(request):
             messages.error(request, 'Dados incorretos. Por favor, utilize um usuário ou senha válidos.')
     else:
         messages.error(request, 'Erro na validação dos dados.')
-    return redirect('authors-login')
+    return redirect('authors-dashboard')
 
 @login_required(login_url='authors-login', redirect_field_name='next')
 def logout_view(request):
     logout(request)
+    messages.success(request, 'Logout efetuado com sucesso.')
     return redirect('authors-login')
+
+@login_required(login_url='authors-login', redirect_field_name='next')
+def dashboard(request):
+    receitas = Recipe.objects.filter(is_published=True, author=request.user)
+    return render(request, 'authors/pages/dashboard.html', context={
+        'receitas': receitas,
+        'tam': len(receitas),
+    })

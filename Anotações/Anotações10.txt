@@ -1,0 +1,81 @@
+# Seção 15 - Criando a dashboard do autor (área administrativa, CRUD e etc)
+
+# Nessa área, com o usuário estando logado, poderá criar receitas, apagar receitas, editar receitas. Poderíamos fazer com que ele pudesse 
+  editar seu nome de usuário, seu nome, senha, email e etc. 
+# De fato, temos o /admin, que é a área administrativa do django, no qual eu, desenvolvedor, posso fazer tudo o que foi dito acima, 
+  mas é inviável que os clientes e usuários tenham acesso a ela.
+
+### Criando a página inicial da dashboard
+  # Crie um template: Copie o register_view.html e mude o nome para dashboard.html e faça modificações ao seu gosto.
+  # Crie uma view dashboard. Lembre-se, um usuário só pode acessar sua dashboard se estiver logado no sistema, então, nessa view, utilizaremos
+    o decorator login_required.
+  # Crie a url.
+  # Para fins organizacionais, recortou-se a parte de mensagens do template login.html e pôs-se no arquivo login_messages.html em
+    authors/partials, e quando precisarmos daquela mensagem, utilizamos o include.
+
+### Ajustando a área administrativa do django
+  # Não podemos permitir que o usuário edite uma receita dele que já foi publicada.
+  # Como já foi dito em seções anteriores, o funcionamento padrão do site é: O usuário cadastra uma receita, o admin do site recebe, avalia e,
+    se achar válida, publica. No entanto, da maneira como a área administrativa do django está agora, esse mecanismo tende à desorganização.
+    Nesse sentido, iremos atrás de formas de ordenar, buscar, filtrar e encontrar receitas dentro da área administrativa do django.
+  # Lá na app recipes, no arquivo admin.py, visualize a classe RecipeAdmin. Dentro dela, faça:
+
+        list_display = ['id', 'title', 'author', 'created_at', 'is_published']
+    
+    # Você perceberá que somente o id das receitas irá atuar como link. Se quiser fazer com que outros atributos também atuem, faça:
+
+        list_display_links = ['title']
+    
+    # Podemos ainda, criar campos de busca de acordo com os atributos da receita. Faça:
+
+        search_fields = ['id', 'title', 'description', 'preparation_steps'] 
+
+    # Podemos também filtrar os dados, nesse caso, as receitas, na área administrativa. Para isso, faça: 
+
+        list_filter = ['category', 'author', 'is_published', 'preparation_steps_is_html']
+
+    # Podemos mudar a quantidade de itens que aparece por página dentro da área administrativa. Faça:
+
+        list_per_page = 10
+      
+    # Podemos decidir o que poderá ser editado pelo admin quando a lista de objetos/receitas está sendo mostrada (Somente os campos mostrados 
+      em list_display podem fazer parte daqui). Faz-se:
+
+        list_editable = ['is_published']
+    
+    # Podemos ordenar a lista de receitas que aparece. Faça:
+
+        ordering = ['-id']
+    
+    # Uma utilidade específica que ainda podemos realizar dentro dessa classe é fazer com que o slug de uma receita seja preenchido automatica
+      mente quando a o título da receita for criado. Para isso, fazemos:
+
+          prepopulated_fields = {
+            'slug': ('title')
+          }
+
+### Exibindo as receitas que o usuário criou em sua prórpia dashboard
+  # Tudo o que faremos é buscar a queryset de receitas de um usuário em específico (o que está logado). from recipes.models import Recipe, e
+    faça:
+
+      receitas = Recipe.objects.filter(is_published=False, author=request.user), e passa ela na context.
+
+      # OBS. Só deve aparecer na dashboard do usuário as receitas dele que ele pode editar, isto é, as que ainda não foram publicadas.
+  # Agora, precisamos mostrar essas receitas no template. Em dashboard.html, façamos:
+
+    <div class='authors-dashboard-container'>
+      <h3>Suas receitas</h3>
+      <ul>
+        {% if tam > 0 %}
+          {% for receita in receitas %}
+            <li>
+              <a href='#'>{{ recipe.title }}</a>
+            </li>
+          {% endfor %}
+        {% else %}
+          <p>Você não possui receitas não publicadas.</p>
+        {% endif %}
+      </ul>
+    </div>
+  
+  # Você pode ter imaginado que talvez seja necessário realizar uma paginação. De fato, mas isso fica para outra hora.

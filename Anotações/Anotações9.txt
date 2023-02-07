@@ -401,3 +401,12 @@
 
     # Devemos ainda proteger o ato do logout contra ataques csrf. Para isso, ao invés de utilizarmos links de redirecionamento, utilizaremos
       o POST.
+
+### Consertando detalhe incômodo
+  # Quando o usuário loga, continua aparecendo os campos de preenchimento de login. Para mudar isso, em login.html, adicione o seguinte if:
+
+      {% if not user.is_authenticated %}
+        {% include 'global/partial/form.html' %}
+      {% endif %}
+    
+    # Isto é: Se o usuário não estiver logado, mostre. Se o usuário está logado, não mostre.
