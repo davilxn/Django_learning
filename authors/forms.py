@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from recipes.models import Recipe
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate, login
 
@@ -121,3 +122,43 @@ class LoginForm(forms.Form):
         },
         label='Senha'
     )
+
+class AuthorRecipeForm(forms.ModelForm):
+    class Meta:
+        model = Recipe
+        fields = ['title', 'description', 'preparation_time', 'preparation_time_unit', 'servings_time', 'servings_time_unit', 'preparation_steps', 'cover']
+        widgets = { 
+            'cover': forms.FileInput(
+                attrs={
+                    'class': 'span-2'                   
+                }
+          ),
+            'preparation_steps': forms.Textarea(
+                attrs={
+                    'class': 'span-2'
+                }
+            ),
+            'servings_time_unit': forms.Select(
+                choices=(
+                    ('Porções', 'Porções'),
+                    ('Pedaços', 'Pedaços'),
+                    ('Pessoas', 'Pessoas'),
+                )
+            ),
+            'preparation_time_unit': forms.Select(
+                choices=(
+                    ('Minutos', 'Minutos'),
+                    ('Horas', 'Horas'),
+                )
+            )
+        }
+        labels = {
+            'title': 'Título:',
+            'preparation_steps': 'Passo-a-passo:',
+            'servings_time': 'Serve:',
+            'servings_time_unit': 'Unidades:',
+            'preparation_time': 'Tempo de preparo:',
+            'preparation_time_unit': 'Unidade de tempo:',
+            'description': 'Descrição:',
+            'cover': 'Imagem:',
+        }     

@@ -79,3 +79,130 @@
     </div>
   
   # Você pode ter imaginado que talvez seja necessário realizar uma paginação. De fato, mas isso fica para outra hora.
+### Criando uma view, template e URL para o usuário editar as receitas dele
+  # O template criado teve como base o dashboard.html. Fez-se as modificações necessárias no template para que apareça algo quando o usuário 
+    clicar em uma receita no seu dashboard. Será o dashboard_recipe.html.
+  # Cria-se a view, copiada da view dashboard, e será a dashboard_recipe_edit. Essa view receberá, além da request, um id, que será utilizado 
+    para buscar uma receita específica com a queryset, tendo como parâmetro extra o PK que receberá como argumento esse id. Importante ressaltar
+    que essa view, assim como tudo que envolve o dashboard só pode ser acessado se o usuário estiver logado, então essa view terá como decorador
+    o login_required.
+    Quando o usuário clicar na receita no dashboard (que é um link), chamará essa view, que renderizará o template mostrando o formulário
+    para editar a receita na qual ele clicou.
+  # Cria-se a url, com o adendo do ID.
+  # Agora, devemos criar um formulário para que o usuário possa editar a receita.
+    # Dentro de forms.py, crie o formulário AuthorRecipeForm, e vai herdar de forms.ModelForm. Isto significa que será um formulário que será
+      herdado de um model, isto é, sua estrutura e seus campos vem de um model já criado, que será o model Recipe. Façamos:
+
+        from django import forms
+        from recipes.models import Recipe
+        class AuthorRecipeForm(forms.ModelForm):
+          class Meta:
+            model = Recipe
+            fields ['title', 'description', 'preparation__time', 'preparation__time_unit', 'servings', 'servings_unit', 'preparation_steps', 'cover']
+    
+    # Utilizaremos esse form dentro da view dashboard_recipe_edit.
+      # Esse formulário dentro da view poderá ou não ser passado para o template (mostrado) com dados, para isso, usamos o request.POST.
+        Faremos: 
+            form = AuthorRecipeForm(request.POST or None, instance=recipe)
+
+          # Onde:
+            # Iremos mostrar um formulário com dados (request.POST) ou vazio (None)
+            # Instance: É um formulário atrelado ao objeto recipe, então os dados que forem salvos nesse formulário estarão atualizando 
+              esse objeto.
+      # OBS. Como estamos utilizando o filter dentro da view para achar um elemento específico dentro da tabela, precisaremos utilizar ainda
+        o método .first() para evitar problemas.
+
+### 
+  
+
+
+### Corrigindo o CSS do formulário e grid e dando toques finais no layout
+  # É interessante que alguns campos não fiquem em uma coluna, mas ocupem o espaço inteiro da tela, como, por exemplo, cover e preparation_steps.
+  # Criaremos uma class css chamada span-2, para sinalizar que a div que tiver ela como classe, deverá exibir algo em duas colunas e não em uma:
+
+      .span-2 {
+            grid-column: span 2;
+        }
+
+  # Iremos modificar os campos preparation__time_unit, servings_unit e cover. Os dois primeiros serão modificados para que o usuário possa 
+    escolher valores padronizados, e o cover, será modificado para que, ao invés do link, seja mostrada a imagem em si, na hora de editar a 
+    receita. Dentro da meta do form:
+      # Modificando:
+        
+        widgets = {
+          'cover': forms.FileInput(
+            attrs={
+              'class': 'span-2'                   
+            }
+          ),
+
+          # Estamos dando à chave class do attr de 'cover' o valor 'span-2'. Isso até agora não faz nada, pois ainda não utilizamos essa classe no 
+            formulário em si, mas assim, poderemos acessar esse valor de dentro do template.
+            Faremos isso para preparation_steps também, pois também queremos mostrá-lo em uma coluna só. Lembre-se, nesse caso é TextArea.
+
+          'servings_time_unit': forms.Select(
+            choices=(
+              ('Porções', 'Porções'),
+              ('Pedaços', 'Pedaços'),
+              ('Pessoas', 'Pessoas'),
+            )
+          ),
+          preparation_time_unit': forms.Select(
+            choices=(
+              ('Minutos', 'Minutos'),
+              ('Horas', 'Horas'),
+            )
+          )
+        }
+    # Em form.html, faça, dentro do for:
+      {% if field.name == 'cover' %}
+        <div class='span-2>
+          <img src="{{ field.value.url }}" alt="Capa para '{{ recipe.title }}'">
+        </div>
+      
+      # Isto é, se o campo for 'cover', ao invés do link, mostre o valor obtido ao ir até o link (a imagem).
+      # Para que possamos utilizar os valores que demos aos attrs do widget dos campos dentro do formulário, modificaremos a div responsável
+        por mostrá-los (div cuja classe é 'form-group'), ajustando sua classe (adicionando a o estilo da classe span-2):
+
+          <div class="form-group {{ field.field.widget.attrs.class }}">   
+
+          # Para campos cujo attr 'class' dentro de widgets que recebeu o valor 'span-2', a configuração acima faz com que a classe posta na
+            div quando o for chegar nesse campo, ao invés de form-group, seja form-group span-2.
+          # Porque? Estamos pegando o objeto da vez no for (que é um campo), acessando o atributo field desse campo, dentro dele, acessando 
+            os widgets, dentro dos widgets, acessando os attr e dentro dos attr acessando o valor da chave 'class' que, para os bons campos,
+            será span-2.
+      # Até esse ponto, o objetivo foi cumprido no macro. O preparation_steps ocupava uma coluna só, mas tava curto, e os campos de seleção
+      (forms.Select) estavam feios. O conserto foi a criação das classes:  .form-content input e form-content textarea, e juntá-las com o 
+      conteúdo da classe form-content imput, ficando da seguinte forma:
+
+          .form-content textarea,
+          .form-content select,
+          .form-content input {
+            width: 100%;
+            padding e etc.
+          }   
+      
+      # Para que a imagem ficasse de tamanho normal na tela (do tamanho da div), pusemos uma classe global de css:
+
+        img {
+            max-width: 100%;
+        }
+      
+      # Modificaremos de forma global os links
+
+          a {
+            color: var(--color-primary);
+            text-decoration: none;
+          }
+    
+    # Para fins estilísticos, modificaremos a mensagem no topo da tela que fala sobre logout: Você foi logado como davia. Por favor, clique aqui para efetuar logout.
+      Faremos dois links, agora: Um para logout e um para retornar ao dashboard e ver as receitas:
+
+        Veja suas receitas ou efetue logout.
+
+      # Veremos que essa mensagem mudará ao longo do desenvolvimento do CRUD.
+
+
+
+
+

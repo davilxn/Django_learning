@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, Http404
-from .forms import RegisterForm, LoginForm
+from .forms import RegisterForm, LoginForm, AuthorRecipeForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -69,8 +69,23 @@ def logout_view(request):
 
 @login_required(login_url='authors-login', redirect_field_name='next')
 def dashboard(request):
-    receitas = Recipe.objects.filter(is_published=True, author=request.user)
+    receitas = Recipe.objects.filter(is_published=False, author=request.user)
     return render(request, 'authors/pages/dashboard.html', context={
         'receitas': receitas,
         'tam': len(receitas),
+    })
+
+@login_required(login_url='authors-login', redirect_field_name='next')
+def dashboard_recipe_edit(request, id):
+    receita = Recipe.objects.filter(is_published=False, author=request.user, pk=id).first()
+    if not receita:
+        raise Http404()
+    
+    form = AuthorRecipeForm(request.POST or None, instance=receita)
+    action_form_url = 'authors-dashboard'
+    return render(request, 'authors/pages/dashboard_recipe.html', context={
+        'receitas': receita,
+        'form': form,
+        'action_form_url': action_form_url,
+        'tam': 1,
     })
