@@ -1,5 +1,10 @@
 'Seção 13 - Django forms - Criando formulários soltos ou formulários baseados em Models
 
+# Detalhe importante que causou confusão. Quando damos clicamos no botão enviar, estamos realizando o submit do formulário, isto é, estamos 
+enviando ele. Quando isso ocorre, e não passamos nada no form_action da tag form em questão a página é recarregada, isto é, 
+a view é chamada novamente e faz tudo de novo. Quando passamos um link para outra página, no entanto, ao enviar o formulário, carregamos outras
+páginas.
+
 # Nesta seção trabalharemos com os autores, resgistrando-os, criando uma tabela (Model), autenticando, entregando permissões e configurando
   suas interações com o site.
 # De início, faremos uma APP 'authors', para que possamos trabalhar com autores de maneira adequada.
@@ -286,7 +291,7 @@
         # Onde:
           # A função is_valid() verifica se o formulário recebido é válido. O is_valid() não verifica se os dados são válidos, apenas verifica 
             se os dados que o usuário digitou cumpriram com as regras do formulário e se as validações escritas na classe do form com as funções
-            clean deram certo.
+            clean deram certo. Isto significa que, se o usuário não tiver modificado o formulário, o método is_valid retornará FALSE.
           # form.save() vai salvar os dados do formulário na base de dados.
           # messages.sucess vai mostrar a mensagem. from django.contrib import messages
           # del() vai limpar os dados presentes dentro de alguma chave.
@@ -305,7 +310,7 @@
           # commit=False faz com que os dados não sejam salvos na base de dados, mas na variável.
           # user.set_password(): Essa função recebe uma string (que, nesse caso, deve ser a senha do usuário) e vai criptografar essa string.
           # user.save() salva os dados (tendo, nesse caso, o valor de um dos campos criptografado, que é a senha)
-    # Email: Estamos permitindo que usuários diferentes possuam o mesmo email. Para consertar, na classe do formulário, fora do Meta, faz-se
+    # Email: Estamos permitindo que usuários diferentes possuam o mesmo email. Parform_actiona consertar, na classe do formulário, fora do Meta, faz-se
       uma validação simples:        (faça o mesmo com o nome de usuário)
 
         def clean_email(self):
@@ -326,6 +331,11 @@
         # Dentro de base_templates/global/partials, crie um arquivo chamado form.html.
         # Dentro do arquivo register_view.html, retira-se o trecho de código responsável pela amostragem do formulário, cola-se no arquivo
           base_templates/global/partials/form.html e inclui esse arquivo em register_view.html
+        # Modificaremos o atributo form_action desse form (a tag html). Ao invés de mandar carregar um link, passaremos: {{ form_action }}, que
+        será uma variável que deverá ser passada por toda view que renderizar um formulário que inclua o form.html.
+        # Essa variável action_form será passada no contexto da view, e é uma chave que receberá um link, escrito através da função reverse():
+        from django.urls import reverse
+
   
   # Requirements.txt
     # Esse arquivo mostra todas as bibliotecas, módulos e aplicações que foram utilizadas para construir a aplicação.

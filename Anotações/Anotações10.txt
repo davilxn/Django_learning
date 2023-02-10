@@ -107,13 +107,12 @@
 
           # Onde:
             # Iremos mostrar um formulário com dados (request.POST) ou vazio (None)
-            # Instance: É um formulário atrelado ao objeto recipe, então os dados que forem salvos nesse formulário estarão atualizando 
+            # Instance = recipe: É um formulário atrelado ao objeto recipe, então os dados que forem salvos nesse formulário estarão atualizando 
               esse objeto.
+              Esse atributo é responsável por já carregar os campos do formulário com as informações contidas dentro do objeto receita, que 
+              obtivemos com a queryset. Sem ele, quando clicássemos na receita, seria carregado um formulário vazio.
       # OBS. Como estamos utilizando o filter dentro da view para achar um elemento específico dentro da tabela, precisaremos utilizar ainda
         o método .first() para evitar problemas.
-
-### 
-  
 
 
 ### Corrigindo o CSS do formulário e grid e dando toques finais no layout
@@ -201,6 +200,106 @@
         Veja suas receitas ou efetue logout.
 
       # Veremos que essa mensagem mudará ao longo do desenvolvimento do CRUD.
+
+### Salvando a edição das receitas
+  # Agora iremos fazer a validação do formulário. Eis um problema: Uma receita possui vários atributos e a criação da receita possui mais
+    atributos que sua edição (não permitiríamos, por exemplo, que o usuário determinasse se ele vai ou não publicar a própria receita).
+    Isso significa que, quando o usuário edita uma receita e envia os dados do formulário, estamos substituindo os dados antigos dessa receita
+    pelos novos dados fornecidos pelo usuário, no entanto, o usuário não enviou todos os dados.
+    Nesse sentido, o usuário enviará os dados, mas faremos com que estes não adentrem diretamente no banco de dados, pois uma parte das infor
+    mações será fornecida pelo usuário, e a outra metade por nós. Para isso:
+
+      from django.urls import reverse
+      if form.is_valid():
+        receita = form.save(commit=False)    
+
+        receita.author = request.POST.user
+        receita.preparation_steps_is_html = False     # Nós preenchemos inicialmente os campos que faltaram
+        receita.is_published = False
+
+        receita.save()              # Salvamos os dados na base de dados.
+
+        return redirect(reverse('authors-dashboard-recipe-edit', args=(id,)))
+
+  # O que deve acontecer é: Assim que clicarmos no nome de uma receita para editá-la, a dashboard_recipe_edit é carregada e a variável form
+    recebe NONE, fazendo o formulário se tornar inválido. A view então renderiza o mesmo template novamente, mas agora tendo recebido os dados
+    e passando para o form, que agora se dará como válido e irá salvar os dados sem problemas.
+
+    Gambiarras: 
+      # Usar um if no template form.html para verificar se quem quem incluiu o form.html foi o template chamado por 
+    dashboard_recipe_edit ou por outro template. Se foi por dashboard_recipe_edit, então precisaremos de um id, do contrário, é desnecessário.
+      # Usamos o reverse dentro do redirect porque eu não soube como passar o id dentro do redirect sozinho.
+        Nesse caso, poderíamos ter retornado um render mesmo, que funcionaria.
+
+  # Consertando a edição da imagem:
+    # Quando estamos tratando de arquivos dentro de formulários, precisamos passar para a tag html do formulário o seguinte argumento, para
+    informar o navegador:
+
+        enctype="multipart/form-data"
+
+      # Isso informa para o servidor e o navegador que o formulário vai trafegar arquivos. SEMPRE QUE O FORMULÁRIO TIVER ARQUIVOS, FAÇA ISSO.
+      # Agora, informamos ao servidor que ele vai receber arquivos naquele formulário. Na view, faça:
+
+        Ao invés de: form = AuthorRecipeForm(
+        data=request.POST or None,
+        instance=receita
+    )
+    Faça: 
+      form = AuthorRecipeForm(
+        data=request.POST or None,
+        files=request.FILES or None,
+        instance=receita
+    )
+
+### Criando a view para criação de novas receitas pelo usuário
+  # Esta nova view, a dashboard_recipe_create será basicamente igual à dashboard_recipe_edit, tirando alguns detalhes que não farão sentido.
+  # Uma diferença crucial acontece na hora de dar o falso commit:
+    Ao invés de: receita = form.save(commit=False)
+    Faremos: receita = form.save(commit=False)     
+      # receita: Recipe, é como informamos em qual tabela salvaremos os dados.
+  # Validando o formulário de criação de novas receitas com o clean.
+    # Para dinamizar o processo, iremos usar um defaultdict: form collections import defaultdict
+    # Utilizaremos o defaultdict para configurar os erros do formulário. Com o defaultdict, cada campo pode ter uma lista de erros.
+    # Dentro da classe do formulário, faça:
+
+        self._my_errors = defaultdict(list)   Qualquer chave desse dicionário vai ter uma lista vazia, inicialmente.
+        # self._my_errors['bla'].append('legal') Se a chave 'bla' não existir, será criada e o append acontece, se existir, o append acontece.
+    # O defautldict deve ser criado dentro de uma __init__:
+
+        def __init__(self, *args, **kwargs):
+          super().__init__(*args, **kwargs)
+          self._my_errors = defaultdict(list)
+
+    # Utilizaremos esse defaultdict dentro da função clean para validarmos o formulário inteiro. Crie a clean.
+    # Para validar se os campos de seleção de números são números positivos, dentro da pasta utils, criaremos uma função que recebe uma string
+    converte pra float e verifica se é positivo, retornando verdadeiro ou falso.
+
+### CRUD para apagar receitas de forma segura + JavaScript
+  # Até esse exato momento, já podemos Criar novas receitas (create), ver as receitas atuais (read) e atualizar as receitas (update). Do CRUD,
+    já temos o CRU. só falta o D.
+  # Na dashboard.html, na hora de mostrar as receitas, iremos criar um botão do lado das receitas do usuário. O estilo desse botão será
+    o ícone de um X vermelho, indicando que o usuário pode deletar uma receita clicando naquele botão. 
+      # Para isso, na dashboard.html, após mostrar o nome de cada receita, façamos:
+
+          <form class="inline-form" action="">
+            {% csrf_token %}
+            <button class="plaintext-button "type="submit">❌</button>
+          </form>
+  
+  # Agora criaremos a view para deletar receitas e conciliamos com o pedaço acima do template dashboard.html.
+  # No entanto, uma vez que clicamos no X, a receita é deletada instantaneamente. O usuário pode clicar lá por engano, então precisamos criar
+    uma confirmação para verificar se o usuário realmente deseja deletar a receita.
+    Dentro do form acima, ampliaremos sua classe: <form class="inline-form form-delete" action="">, onde form-delete será uma classe criada e
+    somente será usada para que possamos encontrar essa tag form com um script JavaScript que criaremos.
+      # Em base_static, crie, junto com a pasta css, a pasta js, e dentro dela, crie um arquivo chamados scripts.js, onde criaremos uma função
+      em js que fará aparecer uma janela de confirmação perguntando se temos certeza da deleção da receita.
+      # Nesse caso, precisaremos usar {% load static %} dentro do footer.html e, antes do fechamento da tag footer: 
+      <script src="{% static 'global/js/scripts.js' %}"></script>
+
+        # O ideal é que fosse no base.html, mas não funcionou, a menos que pusesse a tag script duas vezes.
+
+
+
 
 
 

@@ -9,4 +9,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='authors-logout'),
     path('dashboard/', views.dashboard, name='authors-dashboard'),
     path('dashboard/recipe/<int:id>/edit', views.dashboard_recipe_edit, name='authors-dashboard-recipe-edit'),
+    path('dashboard/recipe/<int:id>/delete', views.dashboard_recipe_delete, name='authors-dashboard-recipe-delete'),
+    path('dashboard/recipe/create', views.dashboard_recipe_create, name='authors-dashboard-recipe-create'),
+    
 ]

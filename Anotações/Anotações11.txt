@@ -1,0 +1,6 @@
+Seção 21 - Criando um menu com template django, html, css e javascript
+
+### Criando a lógica e o conteúdo HTML como estrutura do menu
+    # O arquivo menu.html, em global/partials foi absolutamente copiado.
+    # A parte de css, marcada em styles.css pelo comentário /*Menu*/, completamente copiada.
+    # A parte de interações com javascript, completamente copiada.

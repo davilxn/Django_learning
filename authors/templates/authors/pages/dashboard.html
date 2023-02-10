@@ -13,7 +13,11 @@
       {% if tam > 0 %}
         {% for receita in receitas %}
           <li>
-            <a href='{% url "authors-dashboard-recipe-edit" receita.id   %}'>{{ receita.title }}</a>
+            <a href='{% url "authors-dashboard-recipe-edit" receita.id %}'>{{ receita.title }}</a>
+            <form class="inline-form form-delete" action="{% url 'authors-dashboard-recipe-delete' receita.id %}" method="POST">
+              {% csrf_token %}
+              <button class="plaintext-button "type="submit">❌</button>
+            </form>
           </li>
         {% endfor %}
       {% else %}

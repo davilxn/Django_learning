@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 from recipes.models import Recipe
 from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate, login
+from collections import defaultdict
+from utils.positive import is_positive
 
 class RegisterForm(forms.ModelForm):
     password2 = forms.CharField(
@@ -91,6 +93,7 @@ class RegisterForm(forms.ModelForm):
             raise ValidationError('Um usuário com este nome já existe.')
 
         return username
+
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
@@ -124,9 +127,21 @@ class LoginForm(forms.Form):
     )
 
 class AuthorRecipeForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._my_errors = defaultdict(list)
     class Meta:
         model = Recipe
-        fields = ['title', 'description', 'preparation_time', 'preparation_time_unit', 'servings_time', 'servings_time_unit', 'preparation_steps', 'cover']
+        fields = [
+            'title', 
+            'description', 
+            'preparation_time', 
+            'preparation_time_unit', 
+            'servings_time', 
+            'servings_time_unit', 
+            'preparation_steps', 
+            'cover'
+        ]
         widgets = { 
             'cover': forms.FileInput(
                 attrs={
@@ -161,4 +176,50 @@ class AuthorRecipeForm(forms.ModelForm):
             'preparation_time_unit': 'Unidade de tempo:',
             'description': 'Descrição:',
             'cover': 'Imagem:',
-        }     
+        } 
+
+    def clean(self):
+        super_clean = super().clean()
+        cleaned_data = self.cleaned_data
+        title = cleaned_data.get('title')
+        description = cleaned_data.get('description')
+
+        if title == description:
+            self._my_errors['title'].append("A descrição não pode ser igual ao título")
+
+        if self._my_errors:
+            raise ValidationError(self._my_errors)
+
+        return super_clean
+    
+    def clean_title(self):
+        title = self.cleaned_data.get('title')
+        if len(title) < 4:
+            self._my_errors['title'].append('O título deve ter mais de 4 caracteres.')
+        
+        return title
+    
+    def clean_description(self):
+        description = self.cleaned_data.get('description')
+        if len(description) < 4:
+            self._my_errors['title'].append('O título deve ter mais de 4 caracteres.')
+        
+        return description
+
+    def clean_preparation_time(self):
+        field_name = 'preparation_time'
+        field_value = self.cleaned_data.get(field_name)
+        if not is_positive(field_value):
+            self._my_errors[field_name].append('Este valor deve ser um número positivo.')
+        
+        return field_value
+    
+    def clean_servings_time(self):
+        field_name = 'servings_time'
+        field_value = self.cleaned_data.get(field_name)
+        if not is_positive(field_value):
+            self._my_errors[field_name].append('Este valor deve ser um número positivo.')
+        
+        return field_value
+
+        
