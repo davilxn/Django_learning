@@ -51,7 +51,7 @@
       mente quando a o título da receita for criado. Para isso, fazemos:
 
           prepopulated_fields = {
-            'slug': ('title')
+            'slug': ('title',)
           }
 
 ### Exibindo as receitas que o usuário criou em sua prórpia dashboard
@@ -297,6 +297,34 @@
       <script src="{% static 'global/js/scripts.js' %}"></script>
 
         # O ideal é que fosse no base.html, mas não funcionou, a menos que pusesse a tag script duas vezes.
+  
+  ### Adicionando get_absolute_url no model 
+    # Na App recipe, em models.py, dentro do model Recipe, crie a função: get_absolute_url()
+
+      def get_absolute_url(self):
+        return reverse('recipes-recipe', *args=(self.id,))
+
+    # Feito isso, podemos mudar no template em questão (receita.html) a url de destino que o template chama:
+      Ao invés de {% url 'recipes-receita' %}, faríamos: {{ recipe.get_absolute_url }}.
+
+    # A vantagem disso é que se você precisasse mudar o formato da url, fosse o ID ou o nome da url, a única mudança que precisaria ser feita,
+    seria no model, pois o template acompanharia, isto é, só haveria um ponto de mudança. Nesse projeto, isso não faz diferença, mas poderá 
+    haver um onde faça.
+  
+  ### Fazendo 'slugify' no model e usando save
+    # Sempre quando criamos uma nova receita, devemos criar uma nova slug. Esta é uma ótima oportunidade para recriar um método do Model
+    Recipe: save(). No app recipes, em admin.py, já modificamos o mecanismo de criação de slug, para criações do administrador.
+    # Esse método faz o que o próprio nome já diz, salva. Tanto que é um método que já existe (na classe da qual nosso model herda). 
+    Tanto que nós estaremos apenas sobrescrevendo-o, para que possamos adicionar informações, mas o retorno da nossa função será exatamente o
+    retorno da função original. Atente-se a POO.
+    
+      from django.utils.next import slugify
+      def save(self, *args, **kwargs):
+        if not self.slug:
+          slug = f'{slugify(self.title)}
+          self.slug = slug
+        return super().save(*args, **kwargs)
+
 
 
 

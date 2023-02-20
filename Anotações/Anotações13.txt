@@ -1,0 +1,12 @@
+# Seção 16 - Class Based Views (CBV)
+    # As CBV não foram criadas para substituir as FBV, mas surgiram como ferramentas extras, que podem, de fato, serem usadas ao invés de FBV,
+    mas não significa que são melhores.
+    # Antes de darmos continuidade, é válido que façamos modificações para organizar os arquivos, agora que teremos dois tipos de views.
+        # Criemos um pacote de nome 'views' e, dentro dele, 3 arquivos: __init__.py, FBV.py, CBV.py. T
+        # Tudo o que estiver no arquivo views.py será copiado para dentro de FBV.py.
+        # Dentro do __init__.py, faz-se: from .FBV import *. # flake8: noqa
+        # Agora, dentro de cbv.py, criemos nossas Class Based Views.
+        # Antes de continuar, haverá um commit.
+    
+    # A ideia inicial é criar uma CBV que execute exatamente a mesma função que a view dashboard_recipe_edit, de authors.views.fbv.
+

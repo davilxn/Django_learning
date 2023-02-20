@@ -20,12 +20,24 @@ Agora, iremos entender mais profundamente os arquivos e estruturas do django.
       no mínimo, dois argumentos: uma rota (do tipo string, de modelo: 'rota/'. A / no fim é obrigatória) e uma view. 
         # As views são funções presentes dentro de cada arquivo 'views' de cada aplicação (app). 
         # As views recebem como argumentos *args e *kwargs, que serão a request realizada.
+
+        # A Request ou requisição traduzindo diretamente para português, é o pedido que um cliente realiza a nosso servidor. Esse pedido contém uma 
+          série de dados que são usados para descrever exatamente o que o cliente precisa. Vamos pensar que um cliente precisa cadastrar um novo 
+          produto, ele deve passar todos os dados necessários para o cadastro acontecer de maneira correta, inclusive os dados que foram digitados 
+          pelo usuário em um formulário, no caso de uma aplicação web. No navegador toda vez que trocamos de página ou apertamos enter na barra de 
+          endereço uma nova request é feita. Independente se estamos apenas pedindo a exibição de uma página, cadastrando um novo recurso, 
+          atualizando ou excluindo.
+          O request é uma forma genérica de se referir ao assunto, podemos usar a tradução que será tão bem ou melhor entendido que é uma requisição 
+          de informação ao servidor.Em HTTP, entre as diversas formas de realizar a requisição, tem o verbo usado para requisitá-lo. 
+          Cada verbo tem sua semântica própria de funcionar
+
         # De maneira simples: Quando digitamos uma url no navegador, estamos fazendo com que o navegador realize uma request utilizando o 
           protocolo http para aquela url, para aquele endereço, isto é, para aquele específico 'path' (o path que contém o endereço que o 
           usuário quis acessar), e então o servidor vai receber essa request e vai passar ela como argumento para a view, através da função 
           path(). Isso é chamado de HTTP REQUEST.
           Após esse processo, a view deve retornar uma HTTP RESPONSE, isto é, um objeto HttpResponse. O servidor irá retornar essa HttpResponse
           para o cliente, que fez a HttpRequest (que requisitou algo do servidor). 
+
         # Como, até este ponto, ainda não vimos 'apps', criaremos uma view temporária dentro do arquivo Urls.py. 
           Ex. path('sobre/', viewinventada). Nesse momento, agora o site possui uma url http://127.0.0.1:8000/sobre, que irá carregar
           a view 'viewinventada'. Como dito, a path passará para a viewinventada um argumento, que é uma request, mas a viewinventada não 
@@ -61,6 +73,20 @@ Agora, iremos entender mais profundamente os arquivos e estruturas do django.
 
     GET - Solicitação de dados
     POST - Solicitação para editar
+
+    Tanto GET como POST na verdade são métodos HTTP. Eles indicam para o servidor qual a ação que o cliente deseja realizar. Quando realizamos 
+    uma requisição obrigatoriamente precisamos informar um método.
+
+    GET – é usado quando o cliente deseja obter recursos do servidor. Quando utilizamos o GET, os parâmetros são passados no cabeçalho da 
+    requisição. Por isso, podem ser vistos pela URI, como no caso do nosso formulário de login.
+    
+    POST – é usado quando o cliente deseja enviar dados para processamento ao servidor, como os dados de um formulário, por exemplo.
+    Existem outros métodos HTTP. Os dois métodos citados acima são os mais usados, principalmente em aplicações web. Quando o usuário digita um 
+    endereço e aperta enter na barra de endereço do navegador, ele realiza uma requisição do tipo GET. Já quando preenchemos um formulário e 
+    clicamos em enviar geralmente o método usado é o POST.
+    O método HTTP POST envia dados ao servidor. O tipo do corpo da solicitação é indicado pelo cabeçalho Content-Type. Uma solicitação POST 
+    geralmente é enviada por meio de um formulário HTML e resulta em uma alteração no servidor. Nesse caso, o tipo de conteúdo é selecionado 
+    colocando a string adequada no atributo enctype do elemento <form> ou o atributo formenctype dos elementos <input> ou <button>:
 
     # Breve entendimento sobre Código de Status de Resposta HTTP (RESPONSE)
       # Respostas de informação (100 - 199)

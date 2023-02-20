@@ -240,6 +240,18 @@ páginas.
                     Posteriormente, após realizar a validação, faremos com que, caso não tenha ocorrido erro e o usuário tenha podido se cadastrar,
                     seja direcionado para outra página ou apareça uma mensagem de sucesso ou apareça o fomulário de novo, mas limpo, sem dados. caso
                     ocorra algum erro, aparecerá o formulário com indicações de onde houve erro. Mudança importante, registrada no github.
+                
+                # Em diante, frequentemente, não usaremos o mecanismo acima, pois não será necessário, embora funcione perfeitamente. veremos
+                outra forma de fazer. Isso só foi necessário porque precisamos limpar os dados na login_create e recebe-los novamente na
+                login_view.
+                De agora em diante, utilizaremos somente o request.POST, pois não precisaremos mandar os dados de volta de uma view para a 
+                view que a chamou, para que ela renderize o template com os mesmos dados que fornecemos anteriormente, com exceção dos dados
+                que não passaram pela validação do clean (que veremos adiante).
+                Em algumas, utilizaremos duas views, como fizemos aqui, mas não mandaremos de volta dados para a view chamadora. Em outras
+                usaremos só uma view que carrega o formulário, e quando o enviamos, chamamos a mesma view para que o formulário seja validado 
+                nela mesma.
+                Inclusive, o esquema acima poderia ter sido feito somente com request.POST, e com uma única view.
+                Inclusive, é o que farei, mas deixarei a parte acima comentada, tanto na view como nas urls.
     
   ### Validando campos do formulário
     # Utilizando clean_field para validar um campo específico
@@ -373,6 +385,8 @@ páginas.
       # Verificamos este retorno e, caso o usuário exista no banco de dados, utilizamos o método login para logá-lo na aplicação. A partir daí, 
         este usuário estará autenticado no projeto. Isto é, se o retorno do authenticate não for None, teremos um usuário a logar, através da
         login().
+        A função login, depois de executada, faz com que o usuário passado para ela seja adicionado à chave 'user' da request. Então, após o 
+        login do usuário, podemos acessar seu nome por request.user.
       # Dentro da login_create iremos verificar se os dados preenchidos cumprem as normas do formulário, através do método is_valid(). Se sim, 
         passaremos os parâmetros username e password (os resultados dos campos do formulário de login) e passaremos para a função authenticate
         que vai buscar no banco de dados e retornar um usuário ou None. Se retornar um usuário, significa que os dados username e password foram

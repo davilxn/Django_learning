@@ -174,5 +174,59 @@ quit()
         (url query) chamada 'q', relevante no campo de busca. Para isso, deveremos passar ela como contexto na view, que será então carregada junto
         com a página search, que extende o base.html, que inclui o pagination.html que irá usar essa informação de uma maneira esperta.
 
+### DOTENV
+  # É importante perceber que, aquele 9 se repete muitas vezes e que, provavelmente, se fossemos desenvolver paginação em outras apps
+    desse projeto, faríamos exatamente nesse mesmo modelo, contendo 9 objetos por página. E essa é uma parte bem importante da páginação
+    que, se precisar ser mudada, teríamos que modificar esse 9 em cada função em que ele é usado.
+
+    Uma boa prática seria criar uma CONSTANTE antes das views: PER_PAGE = 9.
+    O Python não possui o conceito de constantes, mas se você criar uma variável com todas as letras maiúsculas, fica subentendido que
+    o valor daquela variável não deve ser modificado e, portanto, ela é uma constante. Ao invés de usar 9, nas funções, usa-se PER_PAGE.
+
+    No entanto, em algum momento, é possível que precisemos mover algumas constantes (essencialmente constantes da settings.py) para o
+    ambiente. Isso porque, em certas variáveis do settings.py existem informações confidenciais que não podem ser públicas e não podem, por
+    exemplo, irem parar no github. A solução para isso, é criar variáveis de ambiente, isto é, variáveis que estão atreladas a determinado
+    ambiente, determinado computador, determinado usuário.
+
+    Para usar essas variáveis no django, utilizaremos dotenv: pip install python-dotenv.
+    No django, podemos carregar isso em 3 lugares diferentes. 
+      # No arquivo manage.py e no asgi.py façamos: from dotenv import load_dotenv
+        # Dentro da função main de manage.py, após o os.environment, faça: load_dotenv()
+        # Antes da variável application de asgi.py, faça: load_dotenv()
+      # Fora de qualquer pasta, na raiz do projeto, na mesma pasta que requirements.txt, criemos um arquivo chamado: .env. Nele, poremos senhas
+        variáveis de ambiente, secret keys e etc. Esse arquivo não estará no github, então se você pegar a aplicação de outra pessoa, não terá
+        acesso direto a ele (pois ele está no gitignore), mas terá acesso direto a outra versão dele, o .env-example
+      # Além disso, criaremos uma outra versão desse arquivo, que será uma cópia dele com o nome: .env-example.
+      # Regra de todos os desenvolvedores: Quando você trabalhar em uma aplicação alheia e ver um arquivo nomeado como .env-example, deve copiar
+        todo o conteúdo desse arquivo, criar um arquivo .env, colar o conteúdo copiado nesse arquivo e excluir o .env-example.
+          # É mais fácil copiar o .env-example que recebeu e renomeá-lo.
+      
+      # Agora, preencheremos o .env: PER_PAGE=9
+      # Lá na views.py onde foi utilizada a PER_PAGE, faça:
+        
+        import os
+        PER_PAGE = os.environ.get('PER_PAGE', 6)  # Isto é, busque uma variável de ambiente com esse nome e pegue seu valor ou retorne 6.
+    
+    # Criando mais variáveis de ambiente
+      # SECRET_KEY
+        # Para obter uma secret_key, façamos, no terminal: 
+          python -c "import string as s;from random import SystemRandom as sr;print(''.join(sr().choices(s.ascii_letters + s.punctuation, k=64)))"
+
+          Isso pode gerar valores para senhas e etc. Se houver aspas no meio do valor, substitua por outro caractere qualquer.
+
+        # Dentro do .env, façamos:
+
+          SECRET_KEY = ;X@m{%"v%D{mjo.([f^g(/d(b)GyqjkE>z(dpj'TNhavOucG$:K-@nuK.Z\VVs-,
+
+        # E no settings.py: SECRET_KEY = os.environ.get('SECRET_KEY', 'INSECURE')
+      
+      # DEBUG
+        # Em .env: DEBUG = 0
+        # No settings.py: True if os.environ.get('DEBUG') == '1' else False
+
+
+
+
+
 
                 

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.http import HttpResponse, Http404
-from .forms import RegisterForm, LoginForm, AuthorRecipeForm
+from authors.forms import RegisterForm, LoginForm, AuthorRecipeForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
