@@ -17,6 +17,7 @@ urlpatterns = [
     path("recipes/category/<int:category_id>/", views.RecipeListViewCategory.as_view(), name='recipes-category'),    
     path("recipes/search/", views.RecipeListViewSearch.as_view(), name='recipes-search'), 
     path("recipes/api/v1", views.RecipeListViewHomeApi.as_view(), name='recipes-home-api-v1'),  
-    path("recipes/api/v1/<int:pk>/", views.RecipeDetailApi.as_view(), name='recipes-detail-api-v1'),  
+    path("recipes/api/v1/<int:pk>/", views.RecipeDetailApi.as_view(), name='recipes-detail-api-v1'),
+    path("recipes/tags/<slug:slug>/", views.RecipeListViewTag.as_view(), name='recipes-tags'), 
     path('recipes/theory/', views.theory, name='theory')
 ]

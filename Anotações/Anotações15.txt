@@ -82,7 +82,42 @@ novo no projeto a partir daqui, embora os conhecimentos aqui adquiridos possam e
     # Nessa parte, aprenderemos sobre relações genéricas entre os models. Relações genéricas usam o app contenttypes do django. Indo no
     settings.py, em INSTALLED_APPS, você o verá.
     # Agora, cria-se o app tag: python manage.py startapp tag, e adicione ele no INSTALLED_APPS. Antes disso, um commit.
-    
+    # Criamos o model tag e faremos a relação dele com as os models que quisermos das apps que quisermos.
+        # from django.contrib.contenttypes.models import ContentType
+        # from django.contrib.contenttypes.fields import GenericForeignKey
+    # Os apps que se ligarão com o app Tag saberão de sua existência, mas o app tag não saberá da deles.
+
+### Criando a relação com GenericRelation e cadastrando na admin do django
+    # Criemos, inicialmente, a relação com a app recipes, indo até recipes/models e criando, dentro do model Recipe, a relação.
+        # tags = GenericRelation(Tag, related_query_name='recipes')
+    # Cadastrando no admin. Em tag/admin, fez-se:
+
+        from .models import Tag
+        @admin.register(Tag)
+        class TagAdmin(admin.ModelAdmin):
+            list_display = 'id', 'name', 'slug'
+            list_display_links = 'id', 'slug'
+            search_fields = 'id', 'name', 'slug'
+            list_per_page = 10
+            list_editable = 'name'
+            ordering = '-id'
+            prepopulated_fields = {
+                'slug': ('name',)
+            }
+
+    # Em recipes/admin
+        from tag.models import Tag
+        from django.contrib.contenttypes.admin import GenericStackedInline
+        class TagInline():
+            model = Tag
+            fields = 'name',
+            extra = 1
+        
+        Em RecipeAdmin:
+            inlines = [TagInline,]
+
+### Exibindo os dados em templates e criando uma view para tags no app recipes
+    # Duplica a view search.html, tome-o como base e faça as modificações necessárias nos outros templates (receita.html)
 
     
 
