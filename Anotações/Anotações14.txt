@@ -1,0 +1,27 @@
+# CBV com JSON response
+
+### 
+# JSON, ou JavScript Object Notation é um arquivo simples que permite a troca de dados mais rápida e generalizada, sendo adequada para todo
+e qualquer aplicação. É muito mais comum, atualmente, que uma view retorne um arquivo JSON do que um objeto, por exemplo.
+O backend deve enviar para o front um arquivo JSON, o que irá dinamizar a troca de informações, pois ao recebê-lo, qualquer framework frontend
+já saberá transformá-lo de volta em um objeto.
+Podemos enviar, com json, não um template pronto, mas os dados, para que assim possa ser criado o frontend em vários dispositivos diferentes.
+
+# Json é simples de ser interpretado por qualquer programador e por qualquer máquina.
+# Leve de ser transportado pela rede, e através de servidores, e qualquer linguagem suporta.
+
+### Adicionando JSON para a API que usa ListView
+    # Estaremos criando novas views que respondam para API's através de arquivos JSON.
+    # Cria-se, então, em recipes.views a view RecipeListViewHomeApi(), que herdará de RecipeListViewBase. Como se trata da listview de Home, 
+    estaremos renderizando o template 'recipes/pages/home.html'. 
+    # Para fazer as CBV responderem JSON, iremos sobrescrever o método que renderiza coisas nas CBV que é o render_to_response().
+        # Para modificá-la para que responda com JSON, precisaremos: from django.http import JsonResponse.
+        # JsonResponse() é a função que será passada como retorno do método render_to_response. O que deve ser escrito dentro dela é a parte 
+        difícil.
+        # O resto é decorativo.
+    
+    # Faremos a mesma coisa com a DetailView. RecipeDetailApi(RecipeDetail)
+        # from django.forms.models import model_to_dict
+        # Quando obtivermos a queryset através do self.get_context_data, usaremos essa função nela.
+        # Não é possível trasnformar uma imagem em arquivo JSON, então a Jsonresponse retorna um objeto normal e não um json. Para isso, será
+        feito um IF importante, dentro de render_to_response.

@@ -93,6 +93,7 @@ def dashboard(request):
         'tam': len(receitas),
     })
 
+"""
 @login_required(login_url='authors-login', redirect_field_name='next')
 def dashboard_recipe_edit(request, id):
     receita = Recipe.objects.filter(is_published=False, author=request.user, pk=id).first()
@@ -121,10 +122,10 @@ def dashboard_recipe_edit(request, id):
     return render(request, 'authors/pages/dashboard_recipe.html', context={
         'form': form,
     })
-
+"""
+"""
 @login_required(login_url='authors-login', redirect_field_name='next')
 def dashboard_recipe_create(request):
-
     form = AuthorRecipeForm(
         data=request.POST or None,  
         files=request.FILES or None,
@@ -146,6 +147,7 @@ def dashboard_recipe_create(request):
         'form': form,
         'form_action': reverse('authors-dashboard-recipe-create')
     })
+    """
 
 @login_required(login_url='authors-login', redirect_field_name='next')
 def dashboard_recipe_delete(request, id):

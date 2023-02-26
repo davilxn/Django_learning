@@ -1,0 +1,88 @@
+# Miscelânia: ORM e models, Managers, QuerySets, Settings.py
+
+Diferentemente do restante, esta é uma seção que contém, essencialmente teoria e pouca ou nenhuma prática, isto é, não implementaremos nada 
+novo no projeto a partir daqui, embora os conhecimentos aqui adquiridos possam e devam ser utilizados para construir aplicações futuras.
+
+### Criando uma view Theory para executarmos os comandos
+    # Em recipes.views, criou-se uma FBV theory, que recebe  *args e **kwargs, além da request. Criou-se também o template theory.html e sua
+      url.
+
+### Querysets do django são preguiçosas
+    # Enquanto nada for feito com os valores de uma queryset (mostrar no template, dar um print, type ou algo), essa consulta não será realizada.
+    O django espera até você efetivamente fazer algo com a queryset para que realize a consulta e execute o que você quer. Ex:
+
+    # Dentro de theory:
+        recipes = Recipe.objects.all() 
+        
+        # Se você executar essa view, nenhuma query, isto é, nenhuma consulta foi feita no banco de dados.
+
+        recipes = Recipe.objects.all() 
+        print(recipes[0].title)
+
+        Nesse momento, quando você efetivamente faz algo, isto é, realmente precisa do valor, é quando o django faz a query. Ainda sim, tudo 
+        o que ele faz é uma só query, buscando um só objeto.
+
+        As querysets do django são preguiçosas.
+
+### Recapitulando maneiras de selecionar objetos usando a queryset.
+    # Vimos alguns métodos de selecionar: filter, get_list_or_404, get_object_or_404, first (quando tem vários e eu quero só o primeiro), 
+      last(recebo vários e quero só o último). Podemos ainda usar o get: Recipe.objects.get(), que funciona semelharmente aos anteriores.
+    # Usamos o order_by() para ordenar a queryset.
+
+### Lookups e Lookups complexos com Q.
+    # Perceba que, na view search, utilizamos a classe Q em associação com o filter, para fazer busca por nomes semelhantes aos da pesquisa.
+    # Na nossa consulta, utilizamos o parâmetro 'icontains'. Tem-se, ainda, através do filter e do Q:
+        - in: Está entre
+        - gt: greater than, maior que
+        - gte: greater than or equal, maior ou igual
+        - lt: less than, menor que
+        - lte: less than or equal, menor ou igual
+        - startswith: Começa com
+        - istartswith: Começa com, desconsiderando, case insensitive.
+        - endswith: Termina com
+        - iendswith: Termina com, case insensitive.
+    # Para mais funções, veja a documentação: https://docs.djangoproject.com/pt-br/4.0/ref/models/querysets/#field-lookups
+    # Para usar as funções acima, não precisamos do Q, só do filter. Utilizamos o Q, quando precisamos utilizar os operadores OR e AND nas 
+    querys. Isso foi o que chamamos de lookups complexos.
+
+### Especificando campos para melhor desempenho usando .values()
+    # Quando fazemos uma consulta com as funções vistas acima, selecionamos os objetos inteiros. Então a query traz todas as informações de
+      todos os campos de todos os objetos. Se for uma query massiva, estaremos trazendo quantidades absurdas de dados, e muitas vezes sem 
+      necessidade, pois, muitas vezes, não precisamos de todas as informações de todos os campos de um objeto.
+    # Podemos especificar os campos que estamos buscando, a fim de tornar a query mais eficiente e mais rápida. Pode-se fazer isso através do 
+      método .values(). Veja e execute na view theory:
+
+      recipes = Recipe.objects.values('id', 'title')[:10]
+
+      E, claro, fazemos as modificações necessárias para mostrar no template. Se tentarmos mostrar o nome do autor no template, não mostrará nada, 
+      porque nossa queryset foi específica na busca dos campos, e não buscou pelo campo author, somente id e title.
+
+### defer e only são úteis se você souber o que está fazendo
+    # O only é exatamente igual ao .values(), com a diferença de que ele retorna diretamente do objeto, e não um dicionário, como o values.
+    # O defer é justamente o inverso. Nele, você seleciona os campos que não vão entrar na query.
+    # Dependendo de como você usa os dois, pode derrubar seu próprio servidor e uma consulta!  
+
+### Usando funções de agregação com o django (Count, max, min, avg, etc.)
+    # from django.db.models.aggregates import Count, Max, Min, Sum
+    # Veja como usar isso se precisar, um dia
+
+### Criando o próprio manager
+    # O manager é, basicamente, o que converte o que você escreve em código para queries na base de dados.
+    # O manager padrão do django é o objects.
+    # Nós podemos sobrescrever o manager padrão ou criar um novo manager.
+    # Para criar um novo manager, faz-se:
+        # Crie uma classe: AlgumacoisaManager(models.Manager) e crie os métodos que você quiser, dentro. Lá na view onde você usará o manager,
+          faça, antes: objects = AlgumacoisaManager()
+        # Exemplo de método que você poderia criar dentro do seu manager:
+
+            def get_published(self):        # Lembrando sempre que esse 'self' é o objects.
+                receitas = self.filter(is_published==True)
+
+### Tag App: O objetivo é criar um sistema de tags, que serão usados dentro das receitas, como se fossem hastags.
+    # Nessa parte, aprenderemos sobre relações genéricas entre os models. Relações genéricas usam o app contenttypes do django. Indo no
+    settings.py, em INSTALLED_APPS, você o verá.
+    # Agora, cria-se o app tag: python manage.py startapp tag, e adicione ele no INSTALLED_APPS. Antes disso, um commit.
+    
+
+    
+
