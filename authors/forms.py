@@ -132,15 +132,16 @@ class AuthorRecipeForm(forms.ModelForm):
         self._my_errors = defaultdict(list)
     class Meta:
         model = Recipe
-        fields = [
+        fields = [ 
             'title', 
             'description', 
             'preparation_time', 
             'preparation_time_unit', 
             'servings_time', 
-            'servings_time_unit', 
-            'preparation_steps', 
-            'cover'
+            'servings_time_unit',
+            'category', 
+            'preparation_steps',
+            'cover',
         ]
         widgets = { 
             'cover': forms.FileInput(
@@ -165,6 +166,11 @@ class AuthorRecipeForm(forms.ModelForm):
                     ('Minutos', 'Minutos'),
                     ('Horas', 'Horas'),
                 )
+            ),
+            'category': forms.Select(
+                attrs={
+                    'class': 'span-2'
+                }
             )
         }
         labels = {
@@ -176,6 +182,7 @@ class AuthorRecipeForm(forms.ModelForm):
             'preparation_time_unit': 'Unidade de tempo:',
             'description': 'Descrição:',
             'cover': 'Imagem:',
+            'category': 'Categoria',
         } 
 
     def clean(self):

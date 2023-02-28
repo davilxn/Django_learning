@@ -16,7 +16,8 @@ from tag.models import Tag
 
 # OBSERVAÇÃO: Ao utilizar a função Http404, faça 'raise Http404()' e não 'return Http404()' :).
 
-PER_PAGES = 9
+import os
+PER_PAGES = os.environ.get('PER_PAGE', 6)
 
 class RecipeListViewBase(ListView):
     model = Recipe
@@ -33,7 +34,19 @@ class RecipeListViewBase(ListView):
     def get_context_data(self, *args, **kwargs):
         ctx = super().get_context_data(*args, **kwargs) 
         page_obj, pagination_range = make_pagination(self.request, ctx.get('recipes_list_base'), PER_PAGES)
-        ctx.update({'recipes': page_obj, 'tam': 1, 'pagination_range': pagination_range, 'title': ctx.get('recipes_list_base')[0].category.name})  
+        
+        object_cat_title = ctx.get('recipes_list_base').first()
+        if object_cat_title is not None:
+            title = ctx.get('recipes_list_base').first().category.name
+        else:
+            title = ''
+
+        ctx.update({
+            'recipes': page_obj, 
+            'tam': len(ctx.get('recipes_list_base')), 
+            'pagination_range': pagination_range, 
+            'title': title
+            })  
         
         return ctx
 
@@ -58,6 +71,7 @@ class RecipeListViewCategory(RecipeListViewBase):
         qs = super().get_queryset(*args, **kwargs)
         qs = qs.filter(category__id=self.kwargs.get('category_id'), is_published=True)
         return qs
+    
 
 class RecipeListViewSearch(RecipeListViewBase):
     template_name = 'recipes/pages/search.html'
@@ -74,10 +88,10 @@ class RecipeListViewSearch(RecipeListViewBase):
         search_term = self.request.GET.get('q', '').strip()
         ctx = super().get_context_data(*args, **kwargs) 
         page_obj, pagination_range = make_pagination(self.request, ctx.get('recipes_list_base'), PER_PAGES, 6)
+        
         ctx.update({
             'page_title': f'Search for "{search_term}"',
             'search_term': search_term,
-            'tam': 1,
             'chave_de_url_adicional': f'&q={search_term}', 
             'searched': page_obj,
             'pagination_range': pagination_range,

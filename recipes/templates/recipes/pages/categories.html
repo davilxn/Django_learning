@@ -2,8 +2,8 @@
 <title>{% block title %}{{ title }} | {% endblock title %}</title>
 {% block content %}
         <div class="main-content main-content-list container">
-            {% for recipe in recipes %}
-                {% include 'recipes/partials/receita.html' %}
-            {% endfor %}
+                {% for recipe in recipes %}
+                    {% include 'recipes/partials/receita.html' %}
+                {% endfor %}
         </div>
 {% endblock content %}
