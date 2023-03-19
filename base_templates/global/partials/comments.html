@@ -1,0 +1,53 @@
+<div class="main-content container">
+
+    {% if list_comments %}
+    
+    <div class="row pt-5">
+        <div class="col-xl"></div>
+        <div class="col-xl-8">
+
+            <h2 class="my-3 ml">Comentários ({{ comments_count }})</h2>
+            
+            {% for comment in list_comments %}
+                <h5 class="mb-2 mt-5 ml">{{ comment.user_comment }} disse:</h5>
+                <small class="text-muted ml">{{ comment.datatime_comment }}</small>
+                <p class="mb-1 ml">{{ comment.comment }}</p>
+            {% endfor %}
+
+        </div>
+        <div class="col-xl"></div>
+    </div>
+
+    {% else %}
+        <h1>Ninguém comentou sobre este post, ainda.</h1>
+    {% endif %}
+
+    <h2 class="my-3 ml">Deixe um comentário</h2>
+
+    <form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="form-content form-content-grid">
+      {% for field in form %}
+      <div class="form-group {{ field.field.widget.attrs.class }}">   
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{field}}
+
+          {% if field.help_text %}
+            <p class="help-text">{{ field.help_text }}</p>
+          {% endif %}
+
+          {{ field.errors }} 
+        </div>
+
+      {% endfor %}
+    </div>
+
+    <div class="form-content form-content-grid">
+      <div class="form-group">
+        <button type="submit">Enviar</button>
+      </div>
+    </div>
+    {% include 'global/partials/messages.html' %}
+  </form>
+</div>
